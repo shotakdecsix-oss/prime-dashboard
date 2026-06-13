@@ -379,10 +379,26 @@ async function runAiSuggest() {
     AI_PICKS = {};
     var idToItem = {};
     candidates.forEach(function(c) { idToItem[c.id] = c; });
-    picks.forEach(function(pick) { AI_PICKS[pick.id] = pick.reason; });
+
+    // Filter to valid picks only
+    var validPicks = picks.filter(function(pick) { return !!idToItem[pick.id]; });
+
+    // If Claude returned bad IDs and we have fewer than 8, pad with top candidates
+    if (validPicks.length < 8) {
+      var usedIds = {};
+      validPicks.forEach(function(p) { usedIds[p.id] = true; });
+      var extras = candidates.filter(function(c) { return !usedIds[c.id]; });
+      var needed = 8 - validPicks.length;
+      for (var i = 0; i < extras.length && needed > 0; i++) {
+        validPicks.push({ id: extras[i].id, reason: '高評価作品' });
+        needed--;
+      }
+    }
+
+    validPicks.forEach(function(pick) { AI_PICKS[pick.id] = pick.reason; });
 
     // Render AI picks section
-    renderAiPicks(picks, idToItem, mood);
+    renderAiPicks(validPicks, idToItem, mood);
     setProgress(100, '完了');
     setTimeout(hideProgress, 600);
 
