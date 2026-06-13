@@ -16,118 +16,145 @@
     @keyframes spin{to{transform:rotate(360deg)}}
     @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
+    /* ── Setup overlay ── */
+    #setup-overlay{position:fixed;inset:0;z-index:900;background:rgba(5,5,18,.96);display:flex;align-items:center;justify-content:center;padding:20px;}
+    #setup-overlay.hidden{display:none;}
+    .setup-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px;width:100%;max-width:440px;}
+    .setup-box h2{font-size:1.1rem;font-weight:800;margin-bottom:4px;}
+    .setup-box p{font-size:.75rem;color:var(--muted);margin-bottom:24px;line-height:1.6;}
+    .setup-field{margin-bottom:16px;}
+    .setup-field label{display:block;font-size:.72rem;color:var(--muted);margin-bottom:5px;font-weight:600;}
+    .setup-field input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:.78rem;font-family:monospace;outline:none;transition:border-color .15s;}
+    .setup-field input:focus{border-color:var(--prime);}
+    .setup-field .hint{font-size:.65rem;color:var(--muted);margin-top:4px;}
+    .setup-save-btn{width:100%;background:var(--prime);color:#fff;border:none;border-radius:10px;padding:11px;font-size:.88rem;font-weight:700;cursor:pointer;margin-top:8px;transition:opacity .12s;}
+    .setup-save-btn:hover{opacity:.85;}
+    .setup-note{font-size:.65rem;color:var(--muted);text-align:center;margin-top:12px;line-height:1.5;}
+
+    /* ── Header ── */
     header{background:linear-gradient(135deg,#0a0a18,#1a1a30);border-bottom:2px solid var(--prime);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100;}
     .header-left{display:flex;align-items:center;gap:12px;}
     .prime-badge{background:linear-gradient(135deg,var(--prime),var(--prime2));border-radius:8px;padding:6px 10px;font-size:1.1rem;font-weight:900;color:#fff;letter-spacing:-.5px;}
-    .header-title h1{font-size:1.1rem;font-weight:800;color:var(--text);}
+    .header-title h1{font-size:1.1rem;font-weight:800;}
     .header-title p{font-size:.68rem;color:var(--muted);margin-top:1px;}
     .header-right{display:flex;align-items:center;gap:8px;}
     .api-indicator{display:flex;align-items:center;gap:5px;font-size:.7rem;padding:4px 10px;border-radius:12px;border:1px solid var(--border);}
     .api-indicator.ok{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.3);color:#86efac;}
-    .api-indicator.none{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:#fca5a5;}
-    .api-dot{width:6px;height:6px;border-radius:50%;}
-    .api-indicator.ok .api-dot{background:#22c55e;}
-    .api-indicator.none .api-dot{background:#ef4444;}
+    .api-dot{width:6px;height:6px;border-radius:50%;background:#22c55e;}
     .settings-btn{background:rgba(0,168,225,.12);border:1px solid rgba(0,168,225,.35);color:var(--prime);border-radius:8px;padding:5px 12px;font-size:.72rem;font-weight:700;cursor:pointer;}
 
-    #api-setup{background:#0d0d22;border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-    #api-setup label{font-size:.73rem;color:var(--muted);white-space:nowrap;}
-    #api-key-input{flex:1;min-width:200px;max-width:340px;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:.73rem;font-family:monospace;outline:none;}
-    #api-key-input:focus{border-color:var(--prime);}
-    #api-key-save{background:var(--prime);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:.73rem;font-weight:700;cursor:pointer;}
-    #api-key-clear{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:6px 10px;font-size:.71rem;cursor:pointer;}
-
+    /* ── Tabs ── */
     .tabs{display:flex;gap:4px;padding:16px 20px 0;background:var(--bg2);border-bottom:1px solid var(--border);}
     .tab{padding:9px 22px;font-size:.85rem;font-weight:700;color:var(--muted);border:none;background:transparent;cursor:pointer;border-bottom:3px solid transparent;transition:all .15s;}
     .tab.active{color:var(--prime);border-bottom-color:var(--prime);}
 
-    .ai-panel{background:linear-gradient(135deg,#0d1a2e 0%,#0a1628 100%);border:1px solid #1a3a5c;border-radius:12px;padding:16px 20px;margin-bottom:16px;}
-    .ai-panel-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:.8rem;color:#7ec8e3;font-weight:600;letter-spacing:.04em;}
-    .ai-key-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:.72rem;color:var(--muted);}
-    .ai-key-input{flex:1;background:#071422;border:1px solid #1a3a5c;border-radius:6px;padding:5px 10px;color:var(--text);font-size:.72rem;outline:none;}
-    .ai-key-save{background:transparent;border:1px solid #1a3a5c;border-radius:6px;padding:4px 10px;color:var(--muted);font-size:.7rem;cursor:pointer;}
-    .ai-key-save:hover{border-color:var(--prime);color:var(--prime);}
+    /* ── AI Panel ── */
+    .ai-wrap{padding:16px 20px 0;max-width:1200px;margin:0 auto;}
+    .ai-panel{background:linear-gradient(135deg,#0d1a2e,#0a1628);border:1px solid #1a3a5c;border-radius:12px;padding:14px 18px;}
+    .ai-panel-header{font-size:.78rem;color:#7ec8e3;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
     .ai-input-row{display:flex;gap:8px;}
-    .ai-input{flex:1;background:#0a1f38;border:1px solid #1a3a5c;border-radius:8px;padding:9px 14px;color:var(--text);font-size:.82rem;outline:none;transition:border-color .15s;}
+    .ai-input{flex:1;background:#0a1f38;border:1px solid #1a3a5c;border-radius:8px;padding:8px 13px;color:var(--text);font-size:.8rem;outline:none;}
     .ai-input:focus{border-color:var(--prime);}
     .ai-input::placeholder{color:#445566;}
-    .ai-submit{background:var(--prime);border:none;border-radius:8px;padding:9px 16px;color:#fff;font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:opacity .12s;}
-    .ai-submit:hover{opacity:.85;}
+    .ai-submit{background:var(--prime);border:none;border-radius:8px;padding:8px 14px;color:#fff;font-size:.75rem;font-weight:700;cursor:pointer;white-space:nowrap;}
     .ai-submit:disabled{opacity:.45;cursor:default;}
-    .ai-reason{margin-top:10px;font-size:.76rem;color:#7ec8e3;background:#071422;border-left:3px solid var(--prime);padding:7px 12px;border-radius:0 6px 6px 0;display:none;}
+    .ai-reason{margin-top:9px;font-size:.74rem;color:#7ec8e3;background:#071422;border-left:3px solid var(--prime);padding:6px 11px;border-radius:0 5px 5px 0;display:none;}
 
-    .filter-bar{background:var(--bg2);padding:12px 20px;display:flex;flex-direction:column;gap:8px;border-bottom:1px solid var(--border);}
-    .filter-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-    .filter-label{font-size:.68rem;color:var(--muted);white-space:nowrap;}
-    .genre-toggle{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:3px 9px;font-size:.68rem;cursor:pointer;white-space:nowrap;transition:all .12s;}
+    /* ── Filter bar ── */
+    .filter-bar{background:var(--bg2);padding:10px 20px;display:flex;flex-direction:column;gap:7px;border-bottom:1px solid var(--border);}
+    .filter-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
+    .filter-label{font-size:.67rem;color:var(--muted);white-space:nowrap;}
+    .genre-toggle{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:3px 9px;font-size:.67rem;cursor:pointer;white-space:nowrap;}
     .genre-toggle:hover{border-color:var(--prime);color:var(--prime);}
-    .decade-select,.sort-select{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:5px 10px;color:var(--text);font-size:.73rem;outline:none;cursor:pointer;}
-    .genre-chips-wrap{overflow:hidden;transition:max-height .25s ease,opacity .25s ease;max-height:200px;}
+    .decade-select,.sort-select{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:5px 9px;color:var(--text);font-size:.72rem;outline:none;cursor:pointer;}
+    .genre-chips-wrap{overflow:hidden;transition:max-height .25s,opacity .25s;max-height:160px;}
     .genre-chips-wrap.collapsed{max-height:0!important;opacity:0;pointer-events:none;}
-    .genre-chips{display:flex;gap:5px;flex-wrap:wrap;padding-top:4px;}
-    .chip{padding:4px 11px;border-radius:14px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.7rem;font-weight:600;cursor:pointer;transition:all .12s;white-space:nowrap;}
+    .genre-chips{display:flex;gap:5px;flex-wrap:wrap;padding-top:3px;}
+    .chip{padding:3px 10px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.68rem;font-weight:600;cursor:pointer;transition:all .1s;white-space:nowrap;}
     .chip.active,.chip:hover{background:var(--prime);border-color:var(--prime);color:#fff;}
 
-    .stats-bar{background:var(--bg);padding:8px 20px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--border);font-size:.7rem;color:var(--muted);}
+    /* ── Stats ── */
+    .stats-bar{background:var(--bg);padding:7px 20px;border-bottom:1px solid var(--border);font-size:.7rem;color:var(--muted);}
     .stats-bar strong{color:var(--text);}
 
+    /* ── Cards ── */
     .main{padding:20px;max-width:1200px;margin:0 auto;}
-    .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;}
-    @media(max-width:600px){.card-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;}.main{padding:12px;}}
-
-    .movie-card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;transition:transform .15s,border-color .15s;animation:fadeIn .25s ease;}
+    .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:15px;}
+    @media(max-width:600px){.card-grid{grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:9px;}.main{padding:10px;}}
+    .movie-card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;transition:transform .15s,border-color .15s;animation:fadeIn .22s ease;}
     .movie-card:hover{transform:translateY(-3px);border-color:var(--prime);}
     .card-poster{width:100%;aspect-ratio:2/3;object-fit:cover;background:var(--card2);display:block;}
-    .card-poster-placeholder{width:100%;aspect-ratio:2/3;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:2.5rem;}
-    .card-body{padding:9px 10px;}
-    .card-title{font-size:.75rem;font-weight:700;line-height:1.3;margin-bottom:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
-    .card-meta{display:flex;align-items:center;justify-content:space-between;gap:4px;}
-    .card-year{font-size:.65rem;color:var(--muted);}
-    .rating-badge{display:flex;align-items:center;gap:3px;background:rgba(245,197,24,.12);border:1px solid rgba(245,197,24,.3);border-radius:5px;padding:2px 6px;}
-    .rating-star{font-size:.6rem;color:var(--gold);}
-    .rating-val{font-size:.7rem;font-weight:800;color:var(--gold);}
-    .card-genres{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px;}
-    .genre-tag{font-size:.58rem;color:var(--muted);background:var(--bg2);border:1px solid var(--border);border-radius:3px;padding:1px 5px;}
+    .card-poster-ph{width:100%;aspect-ratio:2/3;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:2.4rem;}
+    .card-body{padding:8px 9px;}
+    .card-title{font-size:.73rem;font-weight:700;line-height:1.3;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+    .card-meta{display:flex;align-items:center;justify-content:space-between;}
+    .card-year{font-size:.63rem;color:var(--muted);}
+    .rating-badge{display:flex;align-items:center;gap:2px;background:rgba(245,197,24,.12);border:1px solid rgba(245,197,24,.3);border-radius:4px;padding:1px 5px;}
+    .rating-star{font-size:.58rem;color:var(--gold);}
+    .rating-val{font-size:.68rem;font-weight:800;color:var(--gold);}
+    .card-genres{display:flex;flex-wrap:wrap;gap:2px;margin-top:4px;}
+    .genre-tag{font-size:.56rem;color:var(--muted);background:var(--bg2);border:1px solid var(--border);border-radius:3px;padding:1px 4px;}
 
-    .load-more-wrap{text-align:center;padding:24px 0 8px;}
-    .load-more-btn{background:linear-gradient(135deg,var(--prime),var(--prime2));color:#fff;border:none;border-radius:10px;padding:10px 32px;font-size:.85rem;font-weight:700;cursor:pointer;transition:opacity .15s;}
-    .load-more-btn:hover{opacity:.85;}
+    .load-more-wrap{text-align:center;padding:22px 0 6px;}
+    .load-more-btn{background:linear-gradient(135deg,var(--prime),var(--prime2));color:#fff;border:none;border-radius:9px;padding:9px 30px;font-size:.83rem;font-weight:700;cursor:pointer;}
     .load-more-btn:disabled{opacity:.4;cursor:default;}
 
     .spinner-wrap{text-align:center;padding:40px;color:var(--muted);font-size:.8rem;}
-    .spinner{display:inline-block;width:32px;height:32px;border:3px solid rgba(0,168,225,.2);border-top-color:var(--prime);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:10px;}
+    .spinner{display:inline-block;width:30px;height:30px;border:3px solid rgba(0,168,225,.2);border-top-color:var(--prime);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:9px;}
     .empty-msg{text-align:center;padding:48px 20px;color:var(--muted);font-size:.85rem;}
 
+    /* ── Modal ── */
     #detail-modal{display:none;position:fixed;inset:0;z-index:500;background:rgba(5,5,18,.88);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:16px;}
     #detail-modal.open{display:flex;}
-    .modal-box{background:var(--card);border:1px solid var(--border);border-radius:16px;width:100%;max-width:560px;max-height:92vh;overflow-y:auto;position:relative;}
-    .modal-close{position:absolute;top:12px;right:14px;background:transparent;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;z-index:10;line-height:1;}
-    .modal-backdrop{width:100%;height:180px;object-fit:cover;background:var(--card2);border-radius:16px 16px 0 0;display:block;}
-    .modal-backdrop-ph{width:100%;height:80px;background:linear-gradient(135deg,#1a1a40,#0a0a20);border-radius:16px 16px 0 0;}
-    .modal-body{padding:18px;}
-    .modal-header-row{display:flex;gap:14px;margin-bottom:14px;}
-    .modal-poster{width:80px;height:120px;border-radius:7px;object-fit:cover;background:var(--card2);flex-shrink:0;margin-top:-50px;border:2px solid var(--border);position:relative;}
-    .modal-poster-ph{width:80px;height:120px;border-radius:7px;background:var(--card2);flex-shrink:0;margin-top:-50px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.8rem;position:relative;}
+    .modal-box{background:var(--card);border:1px solid var(--border);border-radius:16px;width:100%;max-width:540px;max-height:92vh;overflow-y:auto;position:relative;}
+    .modal-close{position:absolute;top:11px;right:13px;background:transparent;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;z-index:10;}
+    .modal-backdrop{width:100%;height:175px;object-fit:cover;background:var(--card2);border-radius:16px 16px 0 0;display:block;}
+    .modal-backdrop-ph{width:100%;height:70px;background:linear-gradient(135deg,#1a1a40,#0a0a20);border-radius:16px 16px 0 0;}
+    .modal-body{padding:16px;}
+    .modal-header-row{display:flex;gap:13px;margin-bottom:13px;}
+    .modal-poster{width:76px;height:114px;border-radius:7px;object-fit:cover;background:var(--card2);flex-shrink:0;margin-top:-46px;border:2px solid var(--border);}
+    .modal-poster-ph{width:76px;height:114px;border-radius:7px;background:var(--card2);flex-shrink:0;margin-top:-46px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.7rem;}
     .modal-title-area{flex:1;min-width:0;}
-    .modal-title{font-size:1.05rem;font-weight:800;line-height:1.3;margin-bottom:4px;}
-    .modal-original{font-size:.7rem;color:var(--muted);margin-bottom:6px;}
-    .modal-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
-    .modal-tag{font-size:.65rem;padding:2px 8px;border-radius:10px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);}
-    .modal-rating-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
-    .modal-rating-big{font-size:2.2rem;font-weight:900;color:var(--gold);}
-    .modal-rating-sub{font-size:.68rem;color:var(--muted);}
-    .modal-stars{font-size:.9rem;color:var(--gold);letter-spacing:1px;}
-    .modal-sec{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:6px;}
-    .modal-overview{font-size:.8rem;line-height:1.75;color:var(--text);opacity:.9;}
-    .modal-divider{border:none;border-top:1px solid var(--border);margin:14px 0;}
-    .modal-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-    .modal-info-item .lbl{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;}
-    .modal-info-item .val{font-size:.78rem;font-weight:600;margin-top:2px;line-height:1.4;}
-    .prime-link{display:inline-flex;align-items:center;gap:6px;background:var(--prime);color:#fff;border:none;border-radius:8px;padding:8px 18px;font-size:.8rem;font-weight:700;cursor:pointer;text-decoration:none;margin-top:14px;}
+    .modal-title{font-size:1rem;font-weight:800;line-height:1.3;margin-bottom:3px;}
+    .modal-original{font-size:.68rem;color:var(--muted);margin-bottom:5px;}
+    .modal-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:7px;}
+    .modal-tag{font-size:.63rem;padding:2px 7px;border-radius:9px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);}
+    .modal-rating-row{display:flex;align-items:center;gap:10px;margin-bottom:13px;}
+    .modal-rating-big{font-size:2rem;font-weight:900;color:var(--gold);}
+    .modal-rating-sub{font-size:.66rem;color:var(--muted);}
+    .modal-stars{font-size:.85rem;color:var(--gold);}
+    .modal-sec{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:5px;}
+    .modal-overview{font-size:.78rem;line-height:1.75;opacity:.9;}
+    .modal-divider{border:none;border-top:1px solid var(--border);margin:12px 0;}
+    .modal-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+    .modal-info-item .lbl{font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;}
+    .modal-info-item .val{font-size:.76rem;font-weight:600;margin-top:2px;line-height:1.4;}
+    .prime-link{display:inline-flex;align-items:center;gap:5px;background:var(--prime);color:#fff;border:none;border-radius:8px;padding:7px 16px;font-size:.78rem;font-weight:700;cursor:pointer;text-decoration:none;margin-top:12px;}
   </style>
 </head>
 <body>
 
+<!-- ── Setup Overlay ── -->
+<div id="setup-overlay">
+  <div class="setup-box">
+    <h2>🎬 Prime Video ランキング</h2>
+    <p>初回のみAPIキーを入力してください。次回から自動でログインします。</p>
+    <div class="setup-field">
+      <label>TMDB APIキー（必須）</label>
+      <input type="password" id="setup-tmdb" placeholder="例: abc123def456..." autocomplete="off" />
+      <div class="hint">→ <a href="https://www.themoviedb.org/settings/api" target="_blank" style="color:var(--prime)">themoviedb.org</a> で無料取得</div>
+    </div>
+    <div class="setup-field">
+      <label>Claude APIキー（AIおすすめ機能・任意）</label>
+      <input type="password" id="setup-claude" placeholder="sk-ant-..." autocomplete="off" />
+      <div class="hint">→ <a href="https://console.anthropic.com" target="_blank" style="color:var(--prime)">console.anthropic.com</a> で取得</div>
+    </div>
+    <button class="setup-save-btn" onclick="setupSave()">保存して始める</button>
+    <div class="setup-note">キーはブラウザのlocalStorageにのみ保存されます。外部には送信されません。</div>
+  </div>
+</div>
+
+<!-- ── Header ── -->
 <header>
   <div class="header-left">
     <div class="prime-badge">prime</div>
@@ -137,50 +164,40 @@
     </div>
   </div>
   <div class="header-right">
-    <div class="api-indicator none" id="api-indicator">
+    <div class="api-indicator ok">
       <div class="api-dot"></div>
-      <span id="api-indicator-text">APIキー未設定</span>
+      <span>API接続中</span>
     </div>
-    <button class="settings-btn" onclick="toggleApiSetup()">⚙ 設定</button>
+    <button class="settings-btn" onclick="openSetup()">&#9881; 設定</button>
   </div>
 </header>
 
-<div id="api-setup">
-  <label>TMDB APIキー（v3）</label>
-  <input type="password" id="api-key-input" placeholder="例: abc123def456..." autocomplete="off">
-  <button id="api-key-save" onclick="saveApiKey()">保存して読み込む</button>
-  <button id="api-key-clear" onclick="clearApiKey()">クリア</button>
-</div>
-
+<!-- ── Tabs ── -->
 <div class="tabs">
   <button class="tab active" id="tab-movie" onclick="switchTab('movie')">🎬 映画</button>
   <button class="tab" id="tab-tv" onclick="switchTab('tv')">📺 ドラマ・アニメ</button>
 </div>
 
-<div class="main" style="padding-bottom:0;padding-top:16px;">
+<!-- ── AI Panel ── -->
+<div class="ai-wrap">
   <div class="ai-panel">
     <div class="ai-panel-header">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
       AI おすすめ
     </div>
-    <div class="ai-key-row">
-      <span>Claude APIキー</span>
-      <input class="ai-key-input" id="claude-key-input" type="password" placeholder="sk-ant-..." />
-      <button class="ai-key-save" onclick="saveClaudeKey()">保存</button>
-      <span id="claude-key-status" style="color:#3a3;font-size:.7rem;"></span>
-    </div>
     <div class="ai-input-row">
-      <input class="ai-input" id="ai-mood-input" placeholder="今夜の気分を入力… 例:「だらっと笑えるやつ」「感動したい」「90年代の名作」" />
-      <button class="ai-submit" id="ai-submit-btn" onclick="runAiSuggest()">✨ おすすめを探す</button>
+      <input class="ai-input" id="ai-mood-input" placeholder="気分を入力… 例:「だらっと笑えるやつ」「感動したい」「90年代の名作」" />
+      <button class="ai-submit" id="ai-submit-btn" onclick="runAiSuggest()">&#10024; おすすめを探す</button>
     </div>
     <div class="ai-reason" id="ai-reason"></div>
   </div>
 </div>
 
+<!-- ── Filter bar ── -->
 <div class="filter-bar">
   <div class="filter-row">
     <span class="filter-label">ジャンル</span>
-    <button class="genre-toggle" id="genre-toggle-btn" onclick="toggleGenreChips()">▼ 開く</button>
+    <button class="genre-toggle" id="genre-toggle-btn" onclick="toggleGenreChips()">&#9660; 開く</button>
     <span class="filter-label" style="margin-left:6px">年代</span>
     <select class="decade-select" id="decade-select" onchange="onDecadeChange()">
       <option value="">すべて</option>
@@ -191,9 +208,9 @@
       <option value="1980">〜1989年</option>
     </select>
     <select class="sort-select" id="sort-select" onchange="onSortChange()" style="margin-left:auto">
-      <option value="vote_average.desc">★ 評価順</option>
-      <option value="popularity.desc">🔥 人気順</option>
-      <option value="release_date.desc">📅 新着順</option>
+      <option value="vote_average.desc">&#9733; 評価順</option>
+      <option value="popularity.desc">人気順</option>
+      <option value="release_date.desc">新着順</option>
     </select>
   </div>
   <div class="genre-chips-wrap collapsed" id="genre-chips-wrap">
@@ -203,19 +220,16 @@
   </div>
 </div>
 
-<div class="stats-bar" id="stats-bar">
-  <span>上の設定からTMDB APIキーを入力してください</span>
-</div>
+<div class="stats-bar" id="stats-bar"><span>読み込み中...</span></div>
 
 <div class="main">
-  <div id="card-grid-wrap">
-    <div class="empty-msg">上の設定からTMDB APIキーを入力してください 🎬</div>
-  </div>
+  <div id="card-grid-wrap"><div class="spinner-wrap"><div class="spinner"></div><div style="margin-top:8px">読み込み中...</div></div></div>
   <div class="load-more-wrap" id="load-more-wrap" style="display:none">
     <button class="load-more-btn" id="load-more-btn" onclick="loadMore()">もっと見る</button>
   </div>
 </div>
 
+<!-- ── Modal ── -->
 <div id="detail-modal" onclick="if(event.target===this)closeModal()">
   <div class="modal-box">
     <button class="modal-close" onclick="closeModal()">&#x2715;</button>
@@ -238,74 +252,46 @@ var GENRE_OPEN = false;
 var IMG_BASE = 'https://image.tmdb.org/t/p/';
 var PROVIDER_ID = 9;
 
-function toggleApiSetup() {
-  var el = document.getElementById('api-setup');
-  el.style.display = el.style.display === 'none' ? '' : 'none';
-}
-
-function saveApiKey() {
-  var key = document.getElementById('api-key-input').value.trim();
-  if (!key) { alert('APIキーを入力してください'); return; }
-  API_KEY = key;
-  localStorage.setItem('tmdb_key', key);
-  document.getElementById('api-setup').style.display = 'none';
-  updateApiIndicator(true);
+// ── Setup ──
+function setupSave() {
+  var tmdb = document.getElementById('setup-tmdb').value.trim();
+  var claude = document.getElementById('setup-claude').value.trim();
+  if (!tmdb) { alert('TMDBのAPIキーは必須です'); return; }
+  API_KEY = tmdb;
+  localStorage.setItem('tmdb_key', tmdb);
+  if (claude) {
+    CLAUDE_KEY = claude;
+    localStorage.setItem('claude_key', claude);
+  }
+  document.getElementById('setup-overlay').classList.add('hidden');
   loadGenres().then(function() { resetAndLoad(); });
 }
 
-function clearApiKey() {
-  API_KEY = '';
-  localStorage.removeItem('tmdb_key');
-  updateApiIndicator(false);
-  document.getElementById('api-key-input').value = '';
-  document.getElementById('card-grid-wrap').innerHTML = '<div class="empty-msg">上の設定からTMDB APIキーを入力してください 🎬</div>';
-  document.getElementById('stats-bar').innerHTML = '<span>上の設定からTMDB APIキーを入力してください</span>';
-  document.getElementById('load-more-wrap').style.display = 'none';
+function openSetup() {
+  document.getElementById('setup-tmdb').value = '';
+  document.getElementById('setup-claude').value = '';
+  document.getElementById('setup-overlay').classList.remove('hidden');
 }
 
-function updateApiIndicator(ok) {
-  var el = document.getElementById('api-indicator');
-  el.className = 'api-indicator ' + (ok ? 'ok' : 'none');
-  document.getElementById('api-indicator-text').textContent = ok ? 'API接続中' : 'APIキー未設定';
-}
-
-function saveClaudeKey() {
-  var k = document.getElementById('claude-key-input').value.trim();
-  if (!k) return;
-  CLAUDE_KEY = k;
-  localStorage.setItem('claude_key', k);
-  document.getElementById('claude-key-status').textContent = '✓ 保存済み';
-  document.getElementById('claude-key-input').value = '';
-}
-
-function loadClaudeKey() {
-  var k = localStorage.getItem('claude_key') || '';
-  if (k) {
-    CLAUDE_KEY = k;
-    document.getElementById('claude-key-status').textContent = '✓ 保存済み';
-  }
-}
-
+// ── AI suggest ──
 function runAiSuggest() {
   var mood = document.getElementById('ai-mood-input').value.trim();
   if (!mood) return;
-  if (!CLAUDE_KEY) { alert('Claude APIキーを入力してください'); return; }
+  if (!CLAUDE_KEY) {
+    alert('AIおすすめ機能を使うにはClaude APIキーが必要です。\n右上の「設定」ボタンから入力してください。');
+    return;
+  }
   var btn = document.getElementById('ai-submit-btn');
   btn.disabled = true;
-  btn.textContent = '考え中…';
+  btn.textContent = '考え中...';
 
   var isMovie = CURRENT_TAB === 'movie';
-  var movieGenres = 'Action=28,Adventure=12,Animation=16,Comedy=35,Crime=80,Documentary=99,Drama=18,Family=10751,Fantasy=14,History=36,Horror=27,Music=10402,Mystery=9648,Romance=10749,SciFi=878,Thriller=53,War=10752,Western=37';
-  var tvGenres = 'Action&Adventure=10759,Animation=16,Comedy=35,Crime=80,Documentary=99,Drama=18,Family=10751,Kids=10762,Mystery=9648,Reality=10764,SciFi&Fantasy=10765,War&Politics=10768,Western=37';
+  var genreList = isMovie
+    ? 'Action=28,Adventure=12,Animation=16,Comedy=35,Crime=80,Documentary=99,Drama=18,Family=10751,Fantasy=14,History=36,Horror=27,Mystery=9648,Romance=10749,SciFi=878,Thriller=53,War=10752'
+    : 'Action=10759,Animation=16,Comedy=35,Crime=80,Documentary=99,Drama=18,Family=10751,Mystery=9648,Reality=10764,SciFi=10765,War=10768';
 
-  var sysPrompt = 'You are a movie/TV recommendation assistant for Amazon Prime Video Japan. Respond ONLY with valid JSON matching the schema, no markdown fences or extra text.';
-  var lines = [
-    'Mood: ' + mood,
-    'Type: ' + (isMovie ? 'movie' : 'tv'),
-    'Genres: ' + (isMovie ? movieGenres : tvGenres),
-    'Schema: {"genre_id":number|null,"sort_by":"vote_average.desc"|"popularity.desc"|"release_date.desc","decade":"2020"|"2010"|"2000"|"1990"|"1980"|"","reason":"日本語1文"}'
-  ];
-  var userPrompt = lines.join(' | ');
+  var sysPrompt = 'Movie/TV recommendation for Prime Video Japan. Return ONLY JSON, no markdown.';
+  var userPrompt = 'Mood="' + mood + '" Type=' + (isMovie ? 'movie' : 'tv') + ' Genres=' + genreList + ' Schema={"genre_id":number|null,"sort_by":"vote_average.desc"|"popularity.desc"|"release_date.desc","decade":"2020"|"2010"|"2000"|"1990"|"1980"|"","reason":"日本語1文"}';
 
   fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -317,7 +303,7 @@ function runAiSuggest() {
     },
     body: JSON.stringify({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 300,
+      max_tokens: 200,
       system: sysPrompt,
       messages: [{ role: 'user', content: userPrompt }]
     })
@@ -325,39 +311,38 @@ function runAiSuggest() {
   .then(function(r) { return r.json(); })
   .then(function(data) {
     if (data.error) throw new Error(data.error.message);
-    var text = data.content[0].text.trim().replace(/^```[a-z]*\n?/i,'').replace(/\n?```$/,'');
-    var json = JSON.parse(text);
-    if (json.genre_id) {
-      CURRENT_GENRE = json.genre_id;
+    var text = data.content[0].text.trim().replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/, '');
+    var j = JSON.parse(text);
+    if (j.genre_id) {
+      CURRENT_GENRE = j.genre_id;
       document.querySelectorAll('#genre-chips .chip').forEach(function(c) {
-        c.classList[parseInt(c.getAttribute('data-id')) === json.genre_id ? 'add' : 'remove']('active');
+        c.classList[parseInt(c.getAttribute('data-id')) === j.genre_id ? 'add' : 'remove']('active');
       });
     } else {
       CURRENT_GENRE = 0;
-      var first = document.querySelector('#genre-chips .chip');
-      if (first) { document.querySelectorAll('#genre-chips .chip').forEach(function(c){c.classList.remove('active');}); first.classList.add('active'); }
+      document.querySelectorAll('#genre-chips .chip').forEach(function(c) { c.classList.remove('active'); });
+      var f = document.querySelector('#genre-chips .chip');
+      if (f) f.classList.add('active');
     }
-    if (json.sort_by) { CURRENT_SORT = json.sort_by; document.getElementById('sort-select').value = json.sort_by; }
-    if (json.decade !== undefined) { CURRENT_DECADE = json.decade || ''; document.getElementById('decade-select').value = CURRENT_DECADE; }
+    if (j.sort_by) { CURRENT_SORT = j.sort_by; document.getElementById('sort-select').value = j.sort_by; }
+    if (j.decade !== undefined) { CURRENT_DECADE = j.decade || ''; document.getElementById('decade-select').value = CURRENT_DECADE; }
     var r = document.getElementById('ai-reason');
-    r.textContent = '✨ ' + json.reason;
+    r.textContent = '✨ ' + j.reason;
     r.style.display = 'block';
     resetAndLoad();
   })
   .catch(function(e) { alert('エラー: ' + e.message); })
   .finally(function() { btn.disabled = false; btn.textContent = '✨ おすすめを探す'; });
 }
-
 document.getElementById('ai-mood-input').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') runAiSuggest();
 });
 
+// ── Genre toggle ──
 function toggleGenreChips() {
   GENRE_OPEN = !GENRE_OPEN;
-  var wrap = document.getElementById('genre-chips-wrap');
-  var btn = document.getElementById('genre-toggle-btn');
-  wrap.classList[GENRE_OPEN ? 'remove' : 'add']('collapsed');
-  btn.textContent = GENRE_OPEN ? '▲ 閉じる' : '▼ 開く';
+  document.getElementById('genre-chips-wrap').classList[GENRE_OPEN ? 'remove' : 'add']('collapsed');
+  document.getElementById('genre-toggle-btn').textContent = GENRE_OPEN ? '▲ 閉じる' : '▼ 開く';
 }
 
 function onDecadeChange() {
@@ -408,7 +393,7 @@ async function loadGenres() {
   try {
     var res = await fetch('https://api.themoviedb.org/3/genre/' + CURRENT_TAB + '/list?language=ja-JP&api_key=' + API_KEY);
     var data = await res.json();
-    if (data.status_code === 7) { clearApiKey(); alert('APIキーが無効です'); return; }
+    if (data.status_code === 7) { openSetup(); alert('TMDBのAPIキーが無効です。再設定してください。'); return; }
     var map = {};
     (data.genres || []).forEach(function(g) { map[g.id] = g.name; });
     GENRES = map;
@@ -444,15 +429,15 @@ async function loadPage(page, reset) {
   });
   if (CURRENT_GENRE) params.set('with_genres', CURRENT_GENRE);
   if (CURRENT_DECADE) {
-    var dateKey = CURRENT_TAB === 'movie' ? 'primary_release_date' : 'first_air_date';
-    var decadeNum = parseInt(CURRENT_DECADE);
-    params.set(dateKey + '.gte', CURRENT_DECADE + '-01-01');
-    params.set(dateKey + '.lte', CURRENT_DECADE === '1980' ? '1989-12-31' : (decadeNum + 9) + '-12-31');
+    var dk = CURRENT_TAB === 'movie' ? 'primary_release_date' : 'first_air_date';
+    var dn = parseInt(CURRENT_DECADE);
+    params.set(dk + '.gte', CURRENT_DECADE + '-01-01');
+    params.set(dk + '.lte', CURRENT_DECADE === '1980' ? '1989-12-31' : (dn + 9) + '-12-31');
   }
   try {
     var res = await fetch('https://api.themoviedb.org/3/discover/' + CURRENT_TAB + '?' + params.toString());
     var data = await res.json();
-    if (data.status_code === 7) { clearApiKey(); alert('APIキーが無効です'); IS_LOADING = false; return; }
+    if (data.status_code === 7) { openSetup(); alert('APIキーが無効です'); IS_LOADING = false; return; }
     TOTAL_PAGES = Math.min(data.total_pages || 1, 500);
     var total = data.total_results || 0;
     document.getElementById('stats-bar').innerHTML =
@@ -488,10 +473,10 @@ function buildCard(item) {
   var div = document.createElement('div');
   div.className = 'movie-card';
   div.onclick = function() { openDetail(item); };
-  var ph = '<div class="card-poster-placeholder">🎬</div>';
   var posterHtml = poster
-    ? '<img class="card-poster" src="' + poster + '" loading="lazy" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">' + '<div class="card-poster-placeholder" style="display:none">🎬</div>'
-    : ph;
+    ? '<img class="card-poster" src="' + poster + '" loading="lazy" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">' +
+      '<div class="card-poster-ph" style="display:none">🎬</div>'
+    : '<div class="card-poster-ph">🎬</div>';
   div.innerHTML = posterHtml +
     '<div class="card-body">' +
       '<div class="card-title">' + escHtml(title) + '</div>' +
@@ -528,8 +513,9 @@ async function openDetail(item) {
     var poster = d.poster_path ? IMG_BASE + 'w300' + d.poster_path : null;
     var backdrop = d.backdrop_path ? IMG_BASE + 'w780' + d.backdrop_path : null;
     var genres = (d.genres || []).map(function(g) { return g.name; }).join(' / ') || '—';
-    var runtime = d.runtime ? Math.floor(d.runtime / 60) + '時間' + ('0' + d.runtime % 60).slice(-2) + '分'
-                 : (d.episode_run_time && d.episode_run_time[0] ? d.episode_run_time[0] + '分/話' : '—');
+    var runtime = d.runtime
+      ? Math.floor(d.runtime / 60) + '時間' + ('0' + d.runtime % 60).slice(-2) + '分'
+      : (d.episode_run_time && d.episode_run_time[0] ? d.episode_run_time[0] + '分/話' : '—');
     var seasons = d.number_of_seasons ? d.number_of_seasons + 'シーズン' : '';
     var cast = (d.credits && d.credits.cast || []).slice(0, 5).map(function(c) { return c.name; }).join('、') || '—';
     var searchUrl = 'https://www.amazon.co.jp/s?k=' + encodeURIComponent(title) + '&i=instant-video';
@@ -550,7 +536,7 @@ async function openDetail(item) {
             '<div class="modal-tags">' +
               (year ? '<span class="modal-tag">📅 ' + year + '</span>' : '') +
               '<span class="modal-tag">' + escHtml(genres) + '</span>' +
-              (runtime !== '—' ? '<span class="modal-tag">⏱ ' + runtime + '</span>' : '') +
+              (runtime !== '—' ? '<span class="modal-tag">&#9201; ' + runtime + '</span>' : '') +
               (seasons ? '<span class="modal-tag">' + seasons + '</span>' : '') +
             '</div>' +
           '</div>' +
@@ -579,16 +565,17 @@ async function openDetail(item) {
 function closeModal() { document.getElementById('detail-modal').className = ''; }
 function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
+// ── Init ──
 (function() {
-  loadClaudeKey();
-  var saved = localStorage.getItem('tmdb_key');
-  if (saved) {
-    API_KEY = saved;
-    document.getElementById('api-key-input').value = saved;
-    document.getElementById('api-setup').style.display = 'none';
-    updateApiIndicator(true);
+  var tmdb = localStorage.getItem('tmdb_key');
+  var claude = localStorage.getItem('claude_key');
+  if (tmdb) {
+    API_KEY = tmdb;
+    if (claude) CLAUDE_KEY = claude;
+    document.getElementById('setup-overlay').classList.add('hidden');
     loadGenres().then(function() { resetAndLoad(); });
   }
+  // else: overlay stays visible
 })();
 </script>
 </body>
