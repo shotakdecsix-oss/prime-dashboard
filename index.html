@@ -350,53 +350,59 @@ async function runAiSuggest() {
       return (i + 1) + '. [' + item.id + '] ' + title + ' (' + year + ') ★' + rating + ' [' + genreNames + '] ' + ov;
     });
 
-    var sysPrompt = 'You are a film concierge for Amazon Prime Video Japan. You will receive a list of available movies/shows and a mood description. Select exactly 8 titles that best match the mood. Return ONLY a valid JSON array, no markdown, no explanation outside the JSON.';
-    var userPrompt = 'Mood: "' + mood + '"\n\nAvailable titles:\n' + lines.join('\n') + '\n\nReturn JSON array of exactly 8 picks: [{"id": <number>, "reason": "<日本語で20字以内の一言>"}]';
+        var sysPrompt = 'You are a film concierge for Amazon Prime Video Japan. You receive a numbered list of available titles and a mood. Select exactly 8 IDs that best match the mood. CRITICAL RULES: (1) ONLY use IDs that appear in the provided list, never invent or guess IDs. (2) Return ONLY a valid JSON array with no markdown and no text outside the JSON. (3) Output exactly 8 objects.';
 
-    var apiRes = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': CLAUDE_KEY,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 600,
-        system: sysPrompt,
-        messages: [{ role: 'user', content: userPrompt }]
-      })
-    });
-    var apiData = await apiRes.json();
-    if (apiData.error) throw new Error(apiData.error.message);
-
-    setProgress(90, '結果を表示中...');
-    var text = apiData.content[0].text.trim().replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/, '');
-    var picks = JSON.parse(text);
-
-    // Build id->reason map and id->item map
-    AI_PICKS = {};
     var idToItem = {};
     candidates.forEach(function(c) { idToItem[c.id] = c; });
 
-    // Filter to valid picks only
-    var validPicks = picks.filter(function(pick) { return !!idToItem[pick.id]; });
-
-    // If Claude returned bad IDs and we have fewer than 8, pad with top candidates
-    if (validPicks.length < 8) {
-      var usedIds = {};
-      validPicks.forEach(function(p) { usedIds[p.id] = true; });
-      var extras = candidates.filter(function(c) { return !usedIds[c.id]; });
-      var needed = 8 - validPicks.length;
-      for (var i = 0; i < extras.length && needed > 0; i++) {
-        validPicks.push({ id: extras[i].id, reason: '高評価作品' });
-        needed--;
-      }
+    async function callClaude(lineSubset, count) {
+      var uPrompt = 'Mood: "' + mood + '"\n\nAvailable titles (ONLY use IDs from this list):\n' + lineSubset.join('\n') + '\n\nReturn JSON array of exactly ' + count + ' picks: [{"id": <number>, "reason": "<日本語で20字以内の一言>"}]';
+      var r = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': CLAUDE_KEY,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 1000,
+          system: sysPrompt,
+          messages: [{ role: 'user', content: uPrompt }]
+        })
+      });
+      var d = await r.json();
+      if (d.error) throw new Error(d.error.message);
+      var text = d.content[0].text.trim().replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/, '');
+      return JSON.parse(text);
     }
 
+    setProgress(55, 'Claudeが選んでいます...');
+    var picks = await callClaude(lines, 8);
+    var validPicks = picks.filter(function(pick) { return !!idToItem[pick.id]; });
+
+    // If some picks had invalid IDs, retry with remaining candidates to fill the gap
+    if (validPicks.length < 8) {
+      setProgress(75, '追加候補を選んでいます...');
+      var usedIds = {};
+      validPicks.forEach(function(p) { usedIds[p.id] = true; });
+      var remainingLines = lines.filter(function(l) {
+        var m = l.match(/^\d+\. \[(\d+)\]/);
+        return m && !usedIds[parseInt(m[1])];
+      });
+      var needed = 8 - validPicks.length;
+      try {
+        var morePicks = await callClaude(remainingLines, needed);
+        var moreValid = morePicks.filter(function(pick) { return !!idToItem[pick.id]; });
+        validPicks = validPicks.concat(moreValid).slice(0, 8);
+      } catch(e2) { /* retry failed, use what we have */ }
+    }
+
+    AI_PICKS = {};
     validPicks.forEach(function(pick) { AI_PICKS[pick.id] = pick.reason; });
 
+    setProgress(90, '結果を表示中...');
     // Render AI picks section
     renderAiPicks(validPicks, idToItem, mood);
     setProgress(100, '完了');
