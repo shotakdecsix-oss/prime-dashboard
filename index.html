@@ -316,27 +316,43 @@ async function runAiSuggest() {
   btn.textContent = '...';
 
   try {
-    // Step 1: fetch candidate pool from TMDB (3 pages = ~60 items)
+    // Step 1: fetch diverse candidate pool from TMDB (mix of sorts)
     setProgress(10, '作品リストを取得中...');
     var candidates = [];
-    var baseParams = {
-      api_key: API_KEY, language: 'ja-JP', sort_by: 'vote_average.desc',
+    var seenIds = {};
+    var commonParams = {
+      api_key: API_KEY, language: 'ja-JP',
       with_watch_providers: PROVIDER_ID, watch_region: 'JP',
-      'vote_count.gte': CURRENT_TAB === 'movie' ? 300 : 150
+      'vote_count.gte': CURRENT_TAB === 'movie' ? 50 : 20
     };
-    if (CURRENT_GENRE) baseParams.with_genres = CURRENT_GENRE;
+    if (CURRENT_GENRE) commonParams.with_genres = CURRENT_GENRE;
     if (CURRENT_DECADE) {
       var dk = CURRENT_TAB === 'movie' ? 'primary_release_date' : 'first_air_date';
       var dn = parseInt(CURRENT_DECADE);
-      baseParams[dk + '.gte'] = CURRENT_DECADE + '-01-01';
-      baseParams[dk + '.lte'] = CURRENT_DECADE === '1980' ? '1989-12-31' : (dn + 9) + '-12-31';
+      commonParams[dk + '.gte'] = CURRENT_DECADE + '-01-01';
+      commonParams[dk + '.lte'] = CURRENT_DECADE === '1980' ? '1989-12-31' : (dn + 9) + '-12-31';
     }
-    for (var p = 1; p <= 10; p++) {
-      baseParams.page = p;
-      var pr = await fetch('https://api.themoviedb.org/3/discover/' + CURRENT_TAB + '?' + new URLSearchParams(baseParams));
-      var pd = await pr.json();
-      candidates = candidates.concat(pd.results || []);
-      setProgress(10 + p * 4, '作品リストを取得中... (' + candidates.length + '件)');
+    // Fetch from 3 sort strategies: popularity / rating / newest (5+3+2 pages = ~200 items)
+    var strategies = [
+      { sort: 'popularity.desc', pages: 5 },
+      { sort: 'vote_average.desc', pages: 3 },
+      { sort: (CURRENT_TAB === 'movie' ? 'primary_release_date' : 'first_air_date') + '.desc', pages: 2 }
+    ];
+    var totalPages = strategies.reduce(function(s,x){ return s+x.pages; }, 0);
+    var fetched = 0;
+    for (var si = 0; si < strategies.length; si++) {
+      var strat = strategies[si];
+      var sp = Object.assign({}, commonParams, { sort_by: strat.sort });
+      for (var p = 1; p <= strat.pages; p++) {
+        sp.page = p;
+        var pr = await fetch('https://api.themoviedb.org/3/discover/' + CURRENT_TAB + '?' + new URLSearchParams(sp));
+        var pd = await pr.json();
+        (pd.results || []).forEach(function(item) {
+          if (!seenIds[item.id]) { seenIds[item.id] = true; candidates.push(item); }
+        });
+        fetched++;
+        setProgress(10 + fetched / totalPages * 40, '作品リストを取得中... (' + candidates.length + '件)');
+      }
     }
 
     // Step 2: build compact list for Claude
