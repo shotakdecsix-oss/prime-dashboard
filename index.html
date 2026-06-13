@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prime Video ランキング</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --bg:#0f0f1a;--bg2:#16162a;--card:#1e1e35;--card2:#252540;
+      --prime:#00a8e1;--prime2:#0088b8;--gold:#f5c518;
+      --text:#e8e8f0;--muted:#8888aa;--border:#2a2a4a;
+      --green:#22c55e;--red:#ef4444;
+    }
+    body{font-family:'Segoe UI','Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+    header{background:linear-gradient(135deg,#0a0a18,#1a1a30);border-bottom:2px solid var(--prime);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100;}
+    .header-left{display:flex;align-items:center;gap:12px;}
+    .prime-badge{background:linear-gradient(135deg,var(--prime),var(--prime2));border-radius:8px;padding:6px 10px;font-size:1.1rem;font-weight:900;color:#fff;letter-spacing:-.5px;}
+    .header-title h1{font-size:1.1rem;font-weight:800;color:var(--text);}
+    .header-title p{font-size:.68rem;color:var(--muted);margin-top:1px;}
+    .header-right{display:flex;align-items:center;gap:8px;}
+    .api-indicator{display:flex;align-items:center;gap:5px;font-size:.7rem;padding:4px 10px;border-radius:12px;border:1px solid var(--border);}
+    .api-indicator.ok{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.3);color:#86efac;}
+    .api-indicator.none{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:#fca5a5;}
+    .api-dot{width:6px;height:6px;border-radius:50%;}
+    .api-indicator.ok .api-dot{background:#22c55e;}
+    .api-indicator.none .api-dot{background:#ef4444;}
+    .settings-btn{background:rgba(0,168,225,.12);border:1px solid rgba(0,168,225,.35);color:var(--prime);border-radius:8px;padding:5px 12px;font-size:.72rem;font-weight:700;cursor:pointer;}
+
+    #api-setup{background:#0d0d22;border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+    #api-setup label{font-size:.73rem;color:var(--muted);white-space:nowrap;}
+    #api-key-input{flex:1;min-width:200px;max-width:340px;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:.73rem;font-family:monospace;outline:none;}
+    #api-key-input:focus{border-color:var(--prime);}
+    #api-key-save{background:var(--prime);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:.73rem;font-weight:700;cursor:pointer;}
+    #api-key-clear{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:6px 10px;font-size:.71rem;cursor:pointer;}
+
+    .tabs{display:flex;gap:4px;padding:16px 20px 0;background:var(--bg2);border-bottom:1px solid var(--border);}
+    .tab{padding:9px 22px;font-size:.85rem;font-weight:700;color:var(--muted);border:none;background:transparent;cursor:pointer;border-bottom:3px solid transparent;transition:all .15s;}
+    .tab.active{color:var(--prime);border-bottom-color:var(--prime);}
+
+    .filter-bar{background:var(--bg2);padding:12px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--border);}
+    .filter-label{font-size:.68rem;color:var(--muted);white-space:nowrap;}
+    .genre-chips{display:flex;gap:5px;flex-wrap:wrap;flex:1;}
+    .chip{padding:4px 11px;border-radius:14px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.7rem;font-weight:600;cursor:pointer;transition:all .12s;white-space:nowrap;}
+    .chip.active,.chip:hover{background:var(--prime);border-color:var(--prime);color:#fff;}
+    .sort-select{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:5px 10px;color:var(--text);font-size:.73rem;outline:none;cursor:pointer;}
+
+    .stats-bar{background:var(--bg);padding:8px 20px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--border);font-size:.7rem;color:var(--muted);}
+    .stats-bar strong{color:var(--text);}
+
+    .main{padding:20px;max-width:1200px;margin:0 auto;}
+    .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;}
+    @media(max-width:600px){.card-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;}.main{padding:12px;}}
+
+    .movie-card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;transition:transform .15s,border-color .15s;animation:fadeIn .25s ease;}
+    .movie-card:hover{transform:translateY(-3px);border-color:var(--prime);}
+    .card-poster{width:100%;aspect-ratio:2/3;object-fit:cover;background:var(--card2);display:block;}
+    .card-poster-placeholder{width:100%;aspect-ratio:2/3;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:2.5rem;}
+    .card-body{padding:9px 10px;}
+    .card-title{font-size:.75rem;font-weight:700;line-height:1.3;margin-bottom:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+    .card-meta{display:flex;align-items:center;justify-content:space-between;gap:4px;}
+    .card-year{font-size:.65rem;color:var(--muted);}
+    .rating-badge{display:flex;align-items:center;gap:3px;background:rgba(245,197,24,.12);border:1px solid rgba(245,197,24,.3);border-radius:5px;padding:2px 6px;}
+    .rating-star{font-size:.6rem;color:var(--gold);}
+    .rating-val{font-size:.7rem;font-weight:800;color:var(--gold);}
+    .card-genres{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px;}
+    .genre-tag{font-size:.58rem;color:var(--muted);background:var(--bg2);border:1px solid var(--border);border-radius:3px;padding:1px 5px;}
+
+    .load-more-wrap{text-align:center;padding:24px 0 8px;}
+    .load-more-btn{background:linear-gradient(135deg,var(--prime),var(--prime2));color:#fff;border:none;border-radius:10px;padding:10px 32px;font-size:.85rem;font-weight:700;cursor:pointer;transition:opacity .15s;}
+    .load-more-btn:hover{opacity:.85;}
+    .load-more-btn:disabled{opacity:.4;cursor:default;}
+
+    .spinner-wrap{text-align:center;padding:40px;color:var(--muted);font-size:.8rem;}
+    .spinner{display:inline-block;width:32px;height:32px;border:3px solid rgba(0,168,225,.2);border-top-color:var(--prime);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:10px;}
+    .empty-msg{text-align:center;padding:48px 20px;color:var(--muted);font-size:.85rem;}
+
+    #detail-modal{display:none;position:fixed;inset:0;z-index:500;background:rgba(5,5,18,.88);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:16px;}
+    #detail-modal.open{display:flex;}
+    .modal-box{background:var(--card);border:1px solid var(--border);border-radius:16px;width:100%;max-width:560px;max-height:92vh;overflow-y:auto;position:relative;}
+    .modal-close{position:absolute;top:12px;right:14px;background:transparent;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;z-index:10;line-height:1;}
+    .modal-backdrop{width:100%;height:180px;object-fit:cover;background:var(--card2);border-radius:16px 16px 0 0;display:block;}
+    .modal-backdrop-ph{width:100%;height:80px;background:linear-gradient(135deg,#1a1a40,#0a0a20);border-radius:16px 16px 0 0;}
+    .modal-body{padding:18px;}
+    .modal-header-row{display:flex;gap:14px;margin-bottom:14px;}
+    .modal-poster{width:80px;height:120px;border-radius:7px;object-fit:cover;background:var(--card2);flex-shrink:0;margin-top:-50px;border:2px solid var(--border);position:relative;}
+    .modal-poster-ph{width:80px;height:120px;border-radius:7px;background:var(--card2);flex-shrink:0;margin-top:-50px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.8rem;position:relative;}
+    .modal-title-area{flex:1;min-width:0;}
+    .modal-title{font-size:1.05rem;font-weight:800;line-height:1.3;margin-bottom:4px;}
+    .modal-original{font-size:.7rem;color:var(--muted);margin-bottom:6px;}
+    .modal-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
+    .modal-tag{font-size:.65rem;padding:2px 8px;border-radius:10px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);}
+    .modal-rating-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+    .modal-rating-big{font-size:2.2rem;font-weight:900;color:var(--gold);}
+    .modal-rating-sub{font-size:.68rem;color:var(--muted);}
+    .modal-stars{font-size:.9rem;color:var(--gold);letter-spacing:1px;}
+    .modal-sec{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:6px;}
+    .modal-overview{font-size:.8rem;line-height:1.75;color:var(--text);opacity:.9;}
+    .modal-divider{border:none;border-top:1px solid var(--border);margin:14px 0;}
+    .modal-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+    .modal-info-item .lbl{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;}
+    .modal-info-item .val{font-size:.78rem;font-weight:600;margin-top:2px;line-height:1.4;}
+    .prime-link{display:inline-flex;align-items:center;gap:6px;background:var(--prime);color:#fff;border:none;border-radius:8px;padding:8px 18px;font-size:.8rem;font-weight:700;cursor:pointer;text-decoration:none;margin-top:14px;}
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="prime-badge">prime</div>
+    <div class="header-title">
+      <h1>Prime Video ランキング</h1>
+      <p>TMDB × 評価順 / 人気順 / 新着順</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="api-indicator none" id="api-indicator">
+      <div class="api-dot"></div>
+      <span id="api-indicator-text">APIキー未設定</span>
+    </div>
+    <button class="settings-btn" onclick="toggleApiSetup()">⚙ 設定</button>
+  </div>
+</header>
+
+<div id="api-setup">
+  <label>TMDB APIキー（v3）</label>
+  <input type="password" id="api-key-input" placeholder="例: abc123def456..." autocomplete="off">
+  <button id="api-key-save" onclick="saveApiKey()">保存して読み込む</button>
+  <button id="api-key-clear" onclick="clearApiKey()">クリア</button>
+</div>
+
+<div class="tabs">
+  <button class="tab active" id="tab-movie" onclick="switchTab('movie')">🎬 映画</button>
+  <button class="tab" id="tab-tv" onclick="switchTab('tv')">📺 ドラマ・アニメ</button>
+</div>
+
+<div class="filter-bar">
+  <span class="filter-label">ジャンル</span>
+  <div class="genre-chips" id="genre-chips">
+    <button class="chip active" onclick="selectGenre(0,this)">すべて</button>
+  </div>
+  <select class="sort-select" id="sort-select" onchange="onSortChange()">
+    <option value="vote_average.desc">★ 評価順</option>
+    <option value="popularity.desc">🔥 人気順</option>
+    <option value="release_date.desc">📅 新着順</option>
+  </select>
+</div>
+
+<div class="stats-bar" id="stats-bar">
+  <span>上の設定からTMDB APIキーを入力してください</span>
+</div>
+
+<div class="main">
+  <div id="card-grid-wrap">
+    <div class="empty-msg">上の設定からTMDB APIキーを入力してください 🎬</div>
+  </div>
+  <div class="load-more-wrap" id="load-more-wrap" style="display:none">
+    <button class="load-more-btn" id="load-more-btn" onclick="loadMore()">もっと見る</button>
+  </div>
+</div>
+
+<div id="detail-modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<script>
+var API_KEY='';
+var CURRENT_TAB='movie';
+var CURRENT_GENRE=0;
+var CURRENT_SORT='vote_average.desc';
+var CURRENT_PAGE=1;
+var TOTAL_PAGES=1;
+var GENRES={};
+var IS_LOADING=false;
+var IMG_BASE='https://image.tmdb.org/t/p/';
+var PROVIDER_ID=9;
+
+function toggleApiSetup(){
+  var el=document.getElementById('api-setup');
+  el.style.display=el.style.display==='none'?'':'none';
+}
+function saveApiKey(){
+  var key=document.getElementById('api-key-input').value.trim();
+  if(!key){alert('APIキーを入力してください');return;}
+  API_KEY=key;
+  sessionStorage.setItem('tmdb_key',key);
+  document.getElementById('api-setup').style.display='none';
+  updateApiIndicator(true);
+  loadGenres().then(function(){resetAndLoad();});
+}
+function clearApiKey(){
+  API_KEY='';
+  sessionStorage.removeItem('tmdb_key');
+  updateApiIndicator(false);
+  document.getElementById('api-key-input').value='';
+  document.getElementById('card-grid-wrap').innerHTML='<div class="empty-msg">上の設定からTMDB APIキーを入力してください 🎬</div>';
+  document.getElementById('stats-bar').innerHTML='<span>上の設定からTMDB APIキーを入力してください</span>';
+  document.getElementById('load-more-wrap').style.display='none';
+}
+function updateApiIndicator(ok){
+  var el=document.getElementById('api-indicator');
+  el.className='api-indicator '+(ok?'ok':'none');
+  document.getElementById('api-indicator-text').textContent=ok?'API接続中':'APIキー未設定';
+}
+function switchTab(tab){
+  CURRENT_TAB=tab;
+  document.getElementById('tab-movie').className=tab==='movie'?'tab active':'tab';
+  document.getElementById('tab-tv').className=tab==='tv'?'tab active':'tab';
+  var sortSel=document.getElementById('sort-select');
+  var opts=sortSel.options;
+  opts[2].value=tab==='movie'?'release_date.desc':'first_air_date.desc';
+  if(CURRENT_SORT==='release_date.desc'||CURRENT_SORT==='first_air_date.desc'){
+    CURRENT_SORT=opts[2].value;
+  }
+  CURRENT_GENRE=0;
+  if(API_KEY)loadGenres().then(function(){resetAndLoad();});
+}
+function onSortChange(){
+  CURRENT_SORT=document.getElementById('sort-select').value;
+  if(API_KEY)resetAndLoad();
+}
+function selectGenre(id,el){
+  CURRENT_GENRE=id;
+  document.querySelectorAll('#genre-chips .chip').forEach(function(c){c.classList.remove('active');});
+  el.classList.add('active');
+  if(API_KEY)resetAndLoad();
+}
+function resetAndLoad(){
+  CURRENT_PAGE=1;
+  TOTAL_PAGES=1;
+  document.getElementById('card-grid-wrap').innerHTML='<div class="spinner-wrap"><div class="spinner"></div><div style="margin-top:8px">読み込み中...</div></div>';
+  document.getElementById('load-more-wrap').style.display='none';
+  loadPage(1,true);
+}
+function loadMore(){
+  if(IS_LOADING||CURRENT_PAGE>=TOTAL_PAGES)return;
+  CURRENT_PAGE++;
+  loadPage(CURRENT_PAGE,false);
+}
+async function loadGenres(){
+  if(!API_KEY)return;
+  try{
+    var res=await fetch('https://api.themoviedb.org/3/genre/'+CURRENT_TAB+'/list?language=ja-JP&api_key='+API_KEY);
+    var data=await res.json();
+    if(data.status_code===7){clearApiKey();alert('APIキーが無効です');return;}
+    var map={};
+    (data.genres||[]).forEach(function(g){map[g.id]=g.name;});
+    GENRES=map;
+    renderGenreChips(data.genres||[]);
+  }catch(e){console.error(e);}
+}
+function renderGenreChips(genres){
+  var el=document.getElementById('genre-chips');
+  el.innerHTML='<button class="chip'+(CURRENT_GENRE===0?' active':'')+'" onclick="selectGenre(0,this)">すべて</button>';
+  genres.forEach(function(g){
+    var btn=document.createElement('button');
+    btn.className='chip'+(CURRENT_GENRE===g.id?' active':'');
+    btn.textContent=g.name;
+    btn.onclick=(function(id){return function(){selectGenre(id,this);};})(g.id);
+    el.appendChild(btn);
+  });
+}
+async function loadPage(page,reset){
+  if(IS_LOADING)return;
+  IS_LOADING=true;
+  var btn=document.getElementById('load-more-btn');
+  btn.disabled=true;
+  btn.textContent='読み込み中...';
+  var sort=CURRENT_SORT;
+  if(CURRENT_TAB==='tv'&&sort==='release_date.desc')sort='first_air_date.desc';
+  var params=new URLSearchParams({
+    api_key:API_KEY,language:'ja-JP',sort_by:sort,
+    with_watch_providers:PROVIDER_ID,watch_region:'JP',
+    'vote_count.gte':20,page:page
+  });
+  if(CURRENT_GENRE)params.set('with_genres',CURRENT_GENRE);
+  try{
+    var res=await fetch('https://api.themoviedb.org/3/discover/'+CURRENT_TAB+'?'+params.toString());
+    var data=await res.json();
+    if(data.status_code===7){clearApiKey();alert('APIキーが無効です');IS_LOADING=false;return;}
+    TOTAL_PAGES=Math.min(data.total_pages||1,500);
+    var total=data.total_results||0;
+    document.getElementById('stats-bar').innerHTML=
+      '<span>全 <strong>'+total.toLocaleString()+'</strong> 件'+
+      (CURRENT_GENRE&&GENRES[CURRENT_GENRE]?' ／ '+GENRES[CURRENT_GENRE]:'')+
+      ' ／ ページ '+page+' / '+TOTAL_PAGES+'</span>';
+    var results=data.results||[];
+    if(reset){
+      if(!results.length){
+        document.getElementById('card-grid-wrap').innerHTML='<div class="empty-msg">該当作品がありません</div>';
+        document.getElementById('load-more-wrap').style.display='none';
+        IS_LOADING=false;return;
+      }
+      document.getElementById('card-grid-wrap').innerHTML='<div class="card-grid" id="card-grid"></div>';
+    }
+    var grid=document.getElementById('card-grid');
+    results.forEach(function(item){grid.appendChild(buildCard(item));});
+    document.getElementById('load-more-wrap').style.display=CURRENT_PAGE<TOTAL_PAGES?'':'none';
+    btn.textContent='もっと見る';
+    btn.disabled=false;
+  }catch(e){
+    document.getElementById('stats-bar').innerHTML='<span style="color:var(--red)">読み込みエラー: '+escHtml(e.message)+'</span>';
+  }
+  IS_LOADING=false;
+}
+function buildCard(item){
+  var title=item.title||item.name||'不明';
+  var year=(item.release_date||item.first_air_date||'').slice(0,4);
+  var rating=item.vote_average?item.vote_average.toFixed(1):'—';
+  var poster=item.poster_path?IMG_BASE+'w300'+item.poster_path:null;
+  var genres=(item.genre_ids||[]).slice(0,2).map(function(id){return GENRES[id]||'';}).filter(Boolean);
+  var div=document.createElement('div');
+  div.className='movie-card';
+  div.onclick=function(){openDetail(item);};
+  var posterHtml=poster
+    ?'<img class="card-poster" src="'+poster+'" loading="lazy" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">'
+      +'<div class="card-poster-placeholder" style="display:none">🎬</div>'
+    :'<div class="card-poster-placeholder">🎬</div>';
+  div.innerHTML=posterHtml+
+    '<div class="card-body">'+
+      '<div class="card-title">'+escHtml(title)+'</div>'+
+      '<div class="card-meta">'+
+        '<span class="card-year">'+(year||'—')+'</span>'+
+        (item.vote_average?'<div class="rating-badge"><span class="rating-star">★</span><span class="rating-val">'+rating+'</span></div>':'')+'</div>'+
+      (genres.length?'<div class="card-genres">'+genres.map(function(g){return'<span class="genre-tag">'+escHtml(g)+'</span>';}).join('')+'</div>':'')+
+    '</div>';
+  return div;
+}
+function starsHtml(avg){
+  var full=Math.floor(avg/2);
+  var half=(avg/2-full)>=0.4?1:0;
+  return '★'.repeat(full)+(half?'½':'')+'☆'.repeat(5-full-half);
+}
+async function openDetail(item){
+  document.getElementById('detail-modal').className='open';
+  document.getElementById('modal-content').innerHTML='<div class="spinner-wrap"><div class="spinner"></div><div style="margin-top:8px">読み込み中...</div></div>';
+  try{
+    var ep=CURRENT_TAB==='movie'
+      ?'https://api.themoviedb.org/3/movie/'+item.id+'?api_key='+API_KEY+'&language=ja-JP&append_to_response=credits'
+      :'https://api.themoviedb.org/3/tv/'+item.id+'?api_key='+API_KEY+'&language=ja-JP&append_to_response=credits';
+    var res=await fetch(ep);
+    var d=await res.json();
+    var title=d.title||d.name||'不明';
+    var origTitle=d.original_title||d.original_name||'';
+    var year=(d.release_date||d.first_air_date||'').slice(0,4);
+    var rating=d.vote_average?d.vote_average.toFixed(1):'—';
+    var votes=(d.vote_count||0).toLocaleString();
+    var overview=d.overview||'概要は登録されていません。';
+    var poster=d.poster_path?IMG_BASE+'w300'+d.poster_path:null;
+    var backdrop=d.backdrop_path?IMG_BASE+'w780'+d.backdrop_path:null;
+    var genres=(d.genres||[]).map(function(g){return g.name;}).join(' / ')||'—';
+    var runtime=d.runtime?Math.floor(d.runtime/60)+'時間'+('0'+d.runtime%60).slice(-2)+'分'
+               :(d.episode_run_time&&d.episode_run_time[0]?d.episode_run_time[0]+'分/話':'—');
+    var seasons=d.number_of_seasons?d.number_of_seasons+'シーズン':'';
+    var cast=(d.credits&&d.credits.cast||[]).slice(0,5).map(function(c){return c.name;}).join('、')||'—';
+    var searchUrl='https://www.amazon.co.jp/s?k='+encodeURIComponent(title)+'&i=instant-video';
+    var backdropHtml=backdrop
+      ?'<img class="modal-backdrop" src="'+backdrop+'" onerror="this.outerHTML=\'<div class=\\\'modal-backdrop-ph\\\'></div>\'">'
+      :'<div class="modal-backdrop-ph"></div>';
+    var posterHtml=poster
+      ?'<img class="modal-poster" src="'+poster+'" onerror="this.outerHTML=\'<div class=\\\'modal-poster-ph\\\'>🎬</div>\'">'
+      :'<div class="modal-poster-ph">🎬</div>';
+    document.getElementById('modal-content').innerHTML=
+      backdropHtml+
+      '<div class="modal-body">'+
+        '<div class="modal-header-row">'+
+          posterHtml+
+          '<div class="modal-title-area">'+
+            '<div class="modal-title">'+escHtml(title)+'</div>'+
+            (origTitle&&origTitle!==title?'<div class="modal-original">'+escHtml(origTitle)+'</div>':'')+
+            '<div class="modal-tags">'+
+              (year?'<span class="modal-tag">📅 '+year+'</span>':'')+
+              '<span class="modal-tag">'+escHtml(genres)+'</span>'+
+              (runtime!=='—'?'<span class="modal-tag">⏱ '+runtime+'</span>':'')+
+              (seasons?'<span class="modal-tag">'+seasons+'</span>':'')+
+            '</div>'+
+          '</div>'+
+        '</div>'+
+        '<div class="modal-rating-row">'+
+          '<div class="modal-rating-big">'+rating+'</div>'+
+          '<div>'+
+            '<div class="modal-stars">'+(d.vote_average?starsHtml(d.vote_average):'')+'</div>'+
+            '<div class="modal-rating-sub">'+votes+' 件の評価</div>'+
+          '</div>'+
+        '</div>'+
+        '<div class="modal-sec">あらすじ</div>'+
+        '<div class="modal-overview">'+escHtml(overview)+'</div>'+
+        '<hr class="modal-divider">'+
+        '<div class="modal-info-grid">'+
+          '<div class="modal-info-item"><div class="lbl">出演</div><div class="val">'+escHtml(cast)+'</div></div>'+
+          '<div class="modal-info-item"><div class="lbl">評価数</div><div class="val">'+votes+' 件</div></div>'+
+        '</div>'+
+        '<a class="prime-link" href="'+searchUrl+'" target="_blank" rel="noopener">▶ Prime Videoで検索</a>'+
+      '</div>';
+  }catch(e){
+    document.getElementById('modal-content').innerHTML='<div class="empty-msg">読み込みエラー</div>';
+  }
+}
+function closeModal(){document.getElementById('detail-modal').className='';}
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+(function(){
+  var saved=sessionStorage.getItem('tmdb_key');
+  if(saved){
+    API_KEY=saved;
+    document.getElementById('api-key-input').value=saved;
+    document.getElementById('api-setup').style.display='none';
+    updateApiIndicator(true);
+    loadGenres().then(function(){resetAndLoad();});
+  }
+})();
+</script>
+</body>
+</html>
