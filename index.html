@@ -41,12 +41,32 @@
     .tab{padding:9px 22px;font-size:.85rem;font-weight:700;color:var(--muted);border:none;background:transparent;cursor:pointer;border-bottom:3px solid transparent;transition:all .15s;}
     .tab.active{color:var(--prime);border-bottom-color:var(--prime);}
 
-    .filter-bar{background:var(--bg2);padding:12px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--border);}
+    .ai-panel{background:linear-gradient(135deg,#0d1a2e 0%,#0a1628 100%);border:1px solid #1a3a5c;border-radius:12px;padding:16px 20px;margin-bottom:16px;}
+    .ai-panel-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:.8rem;color:#7ec8e3;font-weight:600;letter-spacing:.04em;}
+    .ai-key-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:.72rem;color:var(--muted);}
+    .ai-key-input{flex:1;background:#071422;border:1px solid #1a3a5c;border-radius:6px;padding:5px 10px;color:var(--text);font-size:.72rem;outline:none;}
+    .ai-key-save{background:transparent;border:1px solid #1a3a5c;border-radius:6px;padding:4px 10px;color:var(--muted);font-size:.7rem;cursor:pointer;}
+    .ai-key-save:hover{border-color:var(--prime);color:var(--prime);}
+    .ai-input-row{display:flex;gap:8px;}
+    .ai-input{flex:1;background:#0a1f38;border:1px solid #1a3a5c;border-radius:8px;padding:9px 14px;color:var(--text);font-size:.82rem;outline:none;transition:border-color .15s;}
+    .ai-input:focus{border-color:var(--prime);}
+    .ai-input::placeholder{color:#445566;}
+    .ai-submit{background:var(--prime);border:none;border-radius:8px;padding:9px 16px;color:#fff;font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:opacity .12s;}
+    .ai-submit:hover{opacity:.85;}
+    .ai-submit:disabled{opacity:.45;cursor:default;}
+    .ai-reason{margin-top:10px;font-size:.76rem;color:#7ec8e3;background:#071422;border-left:3px solid var(--prime);padding:7px 12px;border-radius:0 6px 6px 0;display:none;}
+
+    .filter-bar{background:var(--bg2);padding:12px 20px;display:flex;flex-direction:column;gap:8px;border-bottom:1px solid var(--border);}
+    .filter-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
     .filter-label{font-size:.68rem;color:var(--muted);white-space:nowrap;}
-    .genre-chips{display:flex;gap:5px;flex-wrap:wrap;flex:1;}
+    .genre-toggle{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:3px 9px;font-size:.68rem;cursor:pointer;white-space:nowrap;transition:all .12s;}
+    .genre-toggle:hover{border-color:var(--prime);color:var(--prime);}
+    .decade-select,.sort-select{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:5px 10px;color:var(--text);font-size:.73rem;outline:none;cursor:pointer;}
+    .genre-chips-wrap{overflow:hidden;transition:max-height .25s ease,opacity .25s ease;max-height:200px;}
+    .genre-chips-wrap.collapsed{max-height:0!important;opacity:0;pointer-events:none;}
+    .genre-chips{display:flex;gap:5px;flex-wrap:wrap;padding-top:4px;}
     .chip{padding:4px 11px;border-radius:14px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.7rem;font-weight:600;cursor:pointer;transition:all .12s;white-space:nowrap;}
     .chip.active,.chip:hover{background:var(--prime);border-color:var(--prime);color:#fff;}
-    .sort-select{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:5px 10px;color:var(--text);font-size:.73rem;outline:none;cursor:pointer;}
 
     .stats-bar{background:var(--bg);padding:8px 20px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--border);font-size:.7rem;color:var(--muted);}
     .stats-bar strong{color:var(--text);}
@@ -77,26 +97,6 @@
     .spinner-wrap{text-align:center;padding:40px;color:var(--muted);font-size:.8rem;}
     .spinner{display:inline-block;width:32px;height:32px;border:3px solid rgba(0,168,225,.2);border-top-color:var(--prime);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:10px;}
     .empty-msg{text-align:center;padding:48px 20px;color:var(--muted);font-size:.85rem;}
-    .ai-panel{background:linear-gradient(135deg,#0d1a2e 0%,#0a1628 100%);border:1px solid #1a3a5c;border-radius:12px;padding:16px 20px;margin-bottom:16px;}
-    .ai-panel-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:.8rem;color:#7ec8e3;font-weight:600;letter-spacing:.04em;}
-    .ai-panel-header svg{flex-shrink:0;}
-    .ai-input-row{display:flex;gap:8px;}
-    .ai-input{flex:1;background:#0a1f38;border:1px solid #1a3a5c;border-radius:8px;padding:9px 14px;color:var(--text);font-size:.82rem;outline:none;transition:border-color .15s;}
-    .ai-input:focus{border-color:var(--prime);}
-    .ai-input::placeholder{color:#445566;}
-    .ai-submit{background:var(--prime);border:none;border-radius:8px;padding:9px 16px;color:#fff;font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:opacity .12s;}
-    .ai-submit:hover{opacity:.85;}
-    .ai-submit:disabled{opacity:.45;cursor:default;}
-    .ai-reason{margin-top:10px;font-size:.76rem;color:#7ec8e3;background:#071422;border-left:3px solid var(--prime);padding:7px 12px;border-radius:0 6px 6px 0;display:none;}
-    .ai-key-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:.72rem;color:var(--muted);}
-    .ai-key-input{flex:1;background:#071422;border:1px solid #1a3a5c;border-radius:6px;padding:5px 10px;color:var(--text);font-size:.72rem;outline:none;}
-    .ai-key-save{background:transparent;border:1px solid #1a3a5c;border-radius:6px;padding:4px 10px;color:var(--muted);font-size:.7rem;cursor:pointer;}
-    .ai-key-save:hover{border-color:var(--prime);color:var(--prime);}
-    .genre-toggle{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:3px 9px;font-size:.68rem;cursor:pointer;white-space:nowrap;transition:all .12s;}
-    .genre-toggle:hover{border-color:var(--prime);color:var(--prime);}
-    .genre-chips-wrap{overflow:hidden;transition:max-height .25s ease,opacity .25s ease;}
-    .genre-chips-wrap.collapsed{max-height:0!important;opacity:0;pointer-events:none;}
-    .decade-select{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:5px 10px;color:var(--text);font-size:.73rem;outline:none;cursor:pointer;}
 
     #detail-modal{display:none;position:fixed;inset:0;z-index:500;background:rgba(5,5,18,.88);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:16px;}
     #detail-modal.open{display:flex;}
@@ -157,28 +157,31 @@
   <button class="tab" id="tab-tv" onclick="switchTab('tv')">📺 ドラマ・アニメ</button>
 </div>
 
-<div class="ai-panel" id="ai-panel">
-  <div class="ai-panel-header">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><path d="M12 6v6l4 2"/></svg>
-    AI おすすめ
+<div class="main" style="padding-bottom:0;padding-top:16px;">
+  <div class="ai-panel">
+    <div class="ai-panel-header">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      AI おすすめ
+    </div>
+    <div class="ai-key-row">
+      <span>Claude APIキー</span>
+      <input class="ai-key-input" id="claude-key-input" type="password" placeholder="sk-ant-..." />
+      <button class="ai-key-save" onclick="saveClaudeKey()">保存</button>
+      <span id="claude-key-status" style="color:#3a3;font-size:.7rem;"></span>
+    </div>
+    <div class="ai-input-row">
+      <input class="ai-input" id="ai-mood-input" placeholder="今夜の気分を入力… 例:「だらっと笑えるやつ」「感動したい」「90年代の名作」" />
+      <button class="ai-submit" id="ai-submit-btn" onclick="runAiSuggest()">✨ おすすめを探す</button>
+    </div>
+    <div class="ai-reason" id="ai-reason"></div>
   </div>
-  <div class="ai-key-row" id="ai-key-row">
-    <span>Claude APIキー</span>
-    <input class="ai-key-input" id="ai-key-input" type="password" placeholder="sk-ant-..." />
-    <button class="ai-key-save" onclick="saveClaudeKey()">保存</button>
-    <span id="ai-key-status" style="color:#3a3"></span>
-  </div>
-  <div class="ai-input-row">
-    <input class="ai-input" id="ai-mood-input" placeholder="今夜の気分を入力… 例:「だらっと笑えるやつ」「感動したい」「90年代の名作」" onkeydown="if(event.key==='Enter')runAiSuggest()" />
-    <button class="ai-submit" id="ai-submit-btn" onclick="runAiSuggest()">✨ おすすめを探す</button>
-  </div>
-  <div class="ai-reason" id="ai-reason"></div>
 </div>
-<div class="filter-bar" style="flex-direction:column;align-items:stretch;gap:8px;">
-  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+
+<div class="filter-bar">
+  <div class="filter-row">
     <span class="filter-label">ジャンル</span>
     <button class="genre-toggle" id="genre-toggle-btn" onclick="toggleGenreChips()">▼ 開く</button>
-    <span class="filter-label" style="margin-left:8px">年代</span>
+    <span class="filter-label" style="margin-left:6px">年代</span>
     <select class="decade-select" id="decade-select" onchange="onDecadeChange()">
       <option value="">すべて</option>
       <option value="2020">2020年代</option>
@@ -193,8 +196,8 @@
       <option value="release_date.desc">📅 新着順</option>
     </select>
   </div>
-  <div class="genre-chips-wrap collapsed" id="genre-chips-wrap" style="max-height:200px">
-    <div class="genre-chips" id="genre-chips" style="padding-top:4px">
+  <div class="genre-chips-wrap collapsed" id="genre-chips-wrap">
+    <div class="genre-chips" id="genre-chips">
       <button class="chip active" onclick="selectGenre(0,this)">すべて</button>
     </div>
   </div>
@@ -215,362 +218,376 @@
 
 <div id="detail-modal" onclick="if(event.target===this)closeModal()">
   <div class="modal-box">
-    <button class="modal-close" onclick="closeModal()">✕</button>
+    <button class="modal-close" onclick="closeModal()">&#x2715;</button>
     <div id="modal-content"></div>
   </div>
 </div>
 
 <script>
-var API_KEY='';
-var CURRENT_TAB='movie';
-var CURRENT_GENRE=0;
-var CURRENT_SORT='vote_average.desc';
-var CURRENT_PAGE=1;
-var TOTAL_PAGES=1;
-var GENRES={};
-var IS_LOADING=false;
-var CURRENT_DECADE='';
-var GENRE_OPEN=false;
-var IMG_BASE='https://image.tmdb.org/t/p/';
-var PROVIDER_ID=9;
+var API_KEY = '';
+var CLAUDE_KEY = '';
+var CURRENT_TAB = 'movie';
+var CURRENT_GENRE = 0;
+var CURRENT_SORT = 'vote_average.desc';
+var CURRENT_PAGE = 1;
+var TOTAL_PAGES = 1;
+var GENRES = {};
+var IS_LOADING = false;
+var CURRENT_DECADE = '';
+var GENRE_OPEN = false;
+var IMG_BASE = 'https://image.tmdb.org/t/p/';
+var PROVIDER_ID = 9;
 
-function toggleApiSetup(){
-  var el=document.getElementById('api-setup');
-  el.style.display=el.style.display==='none'?'':'none';
+function toggleApiSetup() {
+  var el = document.getElementById('api-setup');
+  el.style.display = el.style.display === 'none' ? '' : 'none';
 }
-function saveApiKey(){
-  var key=document.getElementById('api-key-input').value.trim();
-  if(!key){alert('APIキーを入力してください');return;}
-  API_KEY=key;
-  localStorage.setItem('tmdb_key',key);
-  document.getElementById('api-setup').style.display='none';
+
+function saveApiKey() {
+  var key = document.getElementById('api-key-input').value.trim();
+  if (!key) { alert('APIキーを入力してください'); return; }
+  API_KEY = key;
+  localStorage.setItem('tmdb_key', key);
+  document.getElementById('api-setup').style.display = 'none';
   updateApiIndicator(true);
-  loadGenres().then(function(){resetAndLoad();});
+  loadGenres().then(function() { resetAndLoad(); });
 }
-function clearApiKey(){
-  API_KEY='';
+
+function clearApiKey() {
+  API_KEY = '';
   localStorage.removeItem('tmdb_key');
   updateApiIndicator(false);
-  document.getElementById('api-key-input').value='';
-  document.getElementById('card-grid-wrap').innerHTML='<div class="empty-msg">上の設定からTMDB APIキーを入力してください 🎬</div>';
-  document.getElementById('stats-bar').innerHTML='<span>上の設定からTMDB APIキーを入力してください</span>';
-  document.getElementById('load-more-wrap').style.display='none';
-}
-// ── Claude API key ──
-var CLAUDE_KEY='';
-function saveClaudeKey(){
-  var k=document.getElementById('ai-key-input').value.trim();
-  if(!k)return;
-  CLAUDE_KEY=k;
-  localStorage.setItem('claude_api_key',k);
-  document.getElementById('ai-key-status').textContent='✓ 保存済み';
-  document.getElementById('ai-key-input').value='';
-}
-function loadClaudeKey(){
-  var k=localStorage.getItem('claude_api_key')||'';
-  if(k){CLAUDE_KEY=k;document.getElementById('ai-key-status').textContent='✓ 保存済み';}
+  document.getElementById('api-key-input').value = '';
+  document.getElementById('card-grid-wrap').innerHTML = '<div class="empty-msg">上の設定からTMDB APIキーを入力してください 🎬</div>';
+  document.getElementById('stats-bar').innerHTML = '<span>上の設定からTMDB APIキーを入力してください</span>';
+  document.getElementById('load-more-wrap').style.display = 'none';
 }
 
-// ── AI suggest ──
-function runAiSuggest(){
-  var mood=document.getElementById('ai-mood-input').value.trim();
-  if(!mood)return;
-  if(!CLAUDE_KEY){alert('Claude APIキーを入力してください');return;}
-  var btn=document.getElementById('ai-submit-btn');
-  btn.disabled=true;btn.textContent='考え中…';
-  var isMovie=CURRENT_TAB==='movie';
-  var movieGenres='Action=28,Adventure=12,Animation=16,Comedy=35,Crime=80,Documentary=99,Drama=18,Family=10751,Fantasy=14,History=36,Horror=27,Music=10402,Mystery=9648,Romance=10749,SciFi=878,Thriller=53,War=10752,Western=37';
-  var tvGenres='Action&Adventure=10759,Animation=16,Comedy=35,Crime=80,Documentary=99,Drama=18,Family=10751,Kids=10762,Mystery=9648,Reality=10764,SciFi&Fantasy=10765,War&Politics=10768,Western=37';
-  var sysPrompt='You are a movie/TV recommendation assistant for Amazon Prime Video Japan. Given the user\'s mood, choose the best TMDB Discover filters. Respond with ONLY valid JSON, no markdown, no explanation outside the JSON.';
-  var userPrompt='User mood: '+mood+'
-Content type: '+(isMovie?'movie':'TV show')+'
-
-Available genre IDs: '+(isMovie?movieGenres:tvGenres)+'
-
-Respond with JSON:
-{
-  "genre_id": <number or null>,
-  "sort_by": "vote_average.desc" | "popularity.desc" | "release_date.desc",
-  "decade": "2020" | "2010" | "2000" | "1990" | "1980" | "",
-  "reason": "<Japanese, 1 sentence why>"
-}';
-  fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
-    headers:{
-      'Content-Type':'application/json',
-      'x-api-key':CLAUDE_KEY,
-      'anthropic-version':'2023-06-01',
-      'anthropic-dangerous-direct-browser-access':'true'
-    },
-    body:JSON.stringify({
-      model:'claude-haiku-4-5-20251001',
-      max_tokens:256,
-      system:sysPrompt,
-      messages:[{role:'user',content:userPrompt}]
-    })
-  }).then(function(r){return r.json();}).then(function(data){
-    if(data.error){throw new Error(data.error.message);}
-    var text=data.content[0].text.trim();
-    var json=JSON.parse(text);
-    // Apply filters
-    if(json.genre_id){
-      CURRENT_GENRE=json.genre_id;
-      // Update chip UI
-      document.querySelectorAll('.chip').forEach(function(c){c.classList.remove('active');});
-      var chips=document.querySelectorAll('.chip');
-      chips.forEach(function(c){if(parseInt(c.getAttribute('data-id'))===json.genre_id)c.classList.add('active');});
-    } else {
-      CURRENT_GENRE=0;
-      var firstChip=document.querySelector('.chip');
-      if(firstChip)firstChip.classList.add('active');
-    }
-    if(json.sort_by){document.getElementById('sort-select').value=json.sort_by;}
-    if(json.decade!==undefined){
-      CURRENT_DECADE=json.decade||'';
-      document.getElementById('decade-select').value=CURRENT_DECADE;
-    }
-    var reasonEl=document.getElementById('ai-reason');
-    reasonEl.textContent='✨ '+json.reason;
-    reasonEl.style.display='block';
-    resetAndLoad();
-  }).catch(function(e){
-    alert('エラー: '+e.message);
-  }).finally(function(){
-    btn.disabled=false;btn.textContent='✨ おすすめを探す';
-  });
+function updateApiIndicator(ok) {
+  var el = document.getElementById('api-indicator');
+  el.className = 'api-indicator ' + (ok ? 'ok' : 'none');
+  document.getElementById('api-indicator-text').textContent = ok ? 'API接続中' : 'APIキー未設定';
 }
 
-function toggleGenreChips(){
-  GENRE_OPEN=!GENRE_OPEN;
-  var wrap=document.getElementById('genre-chips-wrap');
-  var btn=document.getElementById('genre-toggle-btn');
-  if(GENRE_OPEN){wrap.classList.remove('collapsed');btn.textContent='▲ 閉じる';}
-  else{wrap.classList.add('collapsed');btn.textContent='▼ 開く';}
+function saveClaudeKey() {
+  var k = document.getElementById('claude-key-input').value.trim();
+  if (!k) return;
+  CLAUDE_KEY = k;
+  localStorage.setItem('claude_key', k);
+  document.getElementById('claude-key-status').textContent = '✓ 保存済み';
+  document.getElementById('claude-key-input').value = '';
 }
-function onDecadeChange(){
-  CURRENT_DECADE=document.getElementById('decade-select').value;
-  if(API_KEY)resetAndLoad();
-}
-function updateApiIndicator(ok){
-  var el=document.getElementById('api-indicator');
-  el.className='api-indicator '+(ok?'ok':'none');
-  document.getElementById('api-indicator-text').textContent=ok?'API接続中':'APIキー未設定';
-}
-function switchTab(tab){
-  CURRENT_TAB=tab;
-  document.getElementById('tab-movie').className=tab==='movie'?'tab active':'tab';
-  document.getElementById('tab-tv').className=tab==='tv'?'tab active':'tab';
-  var sortSel=document.getElementById('sort-select');
-  var opts=sortSel.options;
-  opts[2].value=tab==='movie'?'release_date.desc':'first_air_date.desc';
-  if(CURRENT_SORT==='release_date.desc'||CURRENT_SORT==='first_air_date.desc'){
-    CURRENT_SORT=opts[2].value;
+
+function loadClaudeKey() {
+  var k = localStorage.getItem('claude_key') || '';
+  if (k) {
+    CLAUDE_KEY = k;
+    document.getElementById('claude-key-status').textContent = '✓ 保存済み';
   }
-  CURRENT_GENRE=0;
-  CURRENT_DECADE='';
-  document.getElementById('decade-select').value='';
-  if(API_KEY)loadGenres().then(function(){resetAndLoad();});
 }
-function onSortChange(){
-  CURRENT_SORT=document.getElementById('sort-select').value;
-  if(API_KEY)resetAndLoad();
+
+function runAiSuggest() {
+  var mood = document.getElementById('ai-mood-input').value.trim();
+  if (!mood) return;
+  if (!CLAUDE_KEY) { alert('Claude APIキーを入力してください'); return; }
+  var btn = document.getElementById('ai-submit-btn');
+  btn.disabled = true;
+  btn.textContent = '考え中…';
+
+  var isMovie = CURRENT_TAB === 'movie';
+  var movieGenres = 'Action=28,Adventure=12,Animation=16,Comedy=35,Crime=80,Documentary=99,Drama=18,Family=10751,Fantasy=14,History=36,Horror=27,Music=10402,Mystery=9648,Romance=10749,SciFi=878,Thriller=53,War=10752,Western=37';
+  var tvGenres = 'Action&Adventure=10759,Animation=16,Comedy=35,Crime=80,Documentary=99,Drama=18,Family=10751,Kids=10762,Mystery=9648,Reality=10764,SciFi&Fantasy=10765,War&Politics=10768,Western=37';
+
+  var sysPrompt = 'You are a movie/TV recommendation assistant for Amazon Prime Video Japan. Respond ONLY with valid JSON matching the schema, no markdown fences or extra text.';
+  var lines = [
+    'Mood: ' + mood,
+    'Type: ' + (isMovie ? 'movie' : 'tv'),
+    'Genres: ' + (isMovie ? movieGenres : tvGenres),
+    'Schema: {"genre_id":number|null,"sort_by":"vote_average.desc"|"popularity.desc"|"release_date.desc","decade":"2020"|"2010"|"2000"|"1990"|"1980"|"","reason":"日本語1文"}'
+  ];
+  var userPrompt = lines.join(' | ');
+
+  fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': CLAUDE_KEY,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 300,
+      system: sysPrompt,
+      messages: [{ role: 'user', content: userPrompt }]
+    })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.error) throw new Error(data.error.message);
+    var text = data.content[0].text.trim().replace(/^```[a-z]*\n?/i,'').replace(/\n?```$/,'');
+    var json = JSON.parse(text);
+    if (json.genre_id) {
+      CURRENT_GENRE = json.genre_id;
+      document.querySelectorAll('#genre-chips .chip').forEach(function(c) {
+        c.classList[parseInt(c.getAttribute('data-id')) === json.genre_id ? 'add' : 'remove']('active');
+      });
+    } else {
+      CURRENT_GENRE = 0;
+      var first = document.querySelector('#genre-chips .chip');
+      if (first) { document.querySelectorAll('#genre-chips .chip').forEach(function(c){c.classList.remove('active');}); first.classList.add('active'); }
+    }
+    if (json.sort_by) { CURRENT_SORT = json.sort_by; document.getElementById('sort-select').value = json.sort_by; }
+    if (json.decade !== undefined) { CURRENT_DECADE = json.decade || ''; document.getElementById('decade-select').value = CURRENT_DECADE; }
+    var r = document.getElementById('ai-reason');
+    r.textContent = '✨ ' + json.reason;
+    r.style.display = 'block';
+    resetAndLoad();
+  })
+  .catch(function(e) { alert('エラー: ' + e.message); })
+  .finally(function() { btn.disabled = false; btn.textContent = '✨ おすすめを探す'; });
 }
-function selectGenre(id,el){
-  CURRENT_GENRE=id;
-  document.querySelectorAll('#genre-chips .chip').forEach(function(c){c.classList.remove('active');});
+
+document.getElementById('ai-mood-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') runAiSuggest();
+});
+
+function toggleGenreChips() {
+  GENRE_OPEN = !GENRE_OPEN;
+  var wrap = document.getElementById('genre-chips-wrap');
+  var btn = document.getElementById('genre-toggle-btn');
+  wrap.classList[GENRE_OPEN ? 'remove' : 'add']('collapsed');
+  btn.textContent = GENRE_OPEN ? '▲ 閉じる' : '▼ 開く';
+}
+
+function onDecadeChange() {
+  CURRENT_DECADE = document.getElementById('decade-select').value;
+  if (API_KEY) resetAndLoad();
+}
+
+function switchTab(tab) {
+  CURRENT_TAB = tab;
+  document.getElementById('tab-movie').className = tab === 'movie' ? 'tab active' : 'tab';
+  document.getElementById('tab-tv').className = tab === 'tv' ? 'tab active' : 'tab';
+  var opts = document.getElementById('sort-select').options;
+  opts[2].value = tab === 'movie' ? 'release_date.desc' : 'first_air_date.desc';
+  CURRENT_GENRE = 0;
+  CURRENT_DECADE = '';
+  document.getElementById('decade-select').value = '';
+  if (API_KEY) loadGenres().then(function() { resetAndLoad(); });
+}
+
+function onSortChange() {
+  CURRENT_SORT = document.getElementById('sort-select').value;
+  if (API_KEY) resetAndLoad();
+}
+
+function selectGenre(id, el) {
+  CURRENT_GENRE = id;
+  document.querySelectorAll('#genre-chips .chip').forEach(function(c) { c.classList.remove('active'); });
   el.classList.add('active');
-  if(API_KEY)resetAndLoad();
+  if (API_KEY) resetAndLoad();
 }
-function resetAndLoad(){
-  CURRENT_PAGE=1;
-  TOTAL_PAGES=1;
-  document.getElementById('card-grid-wrap').innerHTML='<div class="spinner-wrap"><div class="spinner"></div><div style="margin-top:8px">読み込み中...</div></div>';
-  document.getElementById('load-more-wrap').style.display='none';
-  loadPage(1,true);
+
+function resetAndLoad() {
+  CURRENT_PAGE = 1;
+  TOTAL_PAGES = 1;
+  document.getElementById('card-grid-wrap').innerHTML = '<div class="spinner-wrap"><div class="spinner"></div><div style="margin-top:8px">読み込み中...</div></div>';
+  document.getElementById('load-more-wrap').style.display = 'none';
+  loadPage(1, true);
 }
-function loadMore(){
-  if(IS_LOADING||CURRENT_PAGE>=TOTAL_PAGES)return;
+
+function loadMore() {
+  if (IS_LOADING || CURRENT_PAGE >= TOTAL_PAGES) return;
   CURRENT_PAGE++;
-  loadPage(CURRENT_PAGE,false);
+  loadPage(CURRENT_PAGE, false);
 }
-async function loadGenres(){
-  if(!API_KEY)return;
-  try{
-    var res=await fetch('https://api.themoviedb.org/3/genre/'+CURRENT_TAB+'/list?language=ja-JP&api_key='+API_KEY);
-    var data=await res.json();
-    if(data.status_code===7){clearApiKey();alert('APIキーが無効です');return;}
-    var map={};
-    (data.genres||[]).forEach(function(g){map[g.id]=g.name;});
-    GENRES=map;
-    renderGenreChips(data.genres||[]);
-  }catch(e){console.error(e);}
+
+async function loadGenres() {
+  if (!API_KEY) return;
+  try {
+    var res = await fetch('https://api.themoviedb.org/3/genre/' + CURRENT_TAB + '/list?language=ja-JP&api_key=' + API_KEY);
+    var data = await res.json();
+    if (data.status_code === 7) { clearApiKey(); alert('APIキーが無効です'); return; }
+    var map = {};
+    (data.genres || []).forEach(function(g) { map[g.id] = g.name; });
+    GENRES = map;
+    renderGenreChips(data.genres || []);
+  } catch(e) { console.error(e); }
 }
-function renderGenreChips(genres){
-  var el=document.getElementById('genre-chips');
-  el.innerHTML='<button class="chip'+(CURRENT_GENRE===0?' active':'')+'" onclick="selectGenre(0,this)">すべて</button>';
-  genres.forEach(function(g){
-    var btn=document.createElement('button');
-    btn.className='chip'+(CURRENT_GENRE===g.id?' active':'');
-    btn.setAttribute('data-id',g.id);
-    btn.textContent=g.name;
-    btn.onclick=(function(id){return function(){selectGenre(id,this);};})(g.id);
+
+function renderGenreChips(genres) {
+  var el = document.getElementById('genre-chips');
+  el.innerHTML = '<button class="chip' + (CURRENT_GENRE === 0 ? ' active' : '') + '" onclick="selectGenre(0,this)">すべて</button>';
+  genres.forEach(function(g) {
+    var btn = document.createElement('button');
+    btn.className = 'chip' + (CURRENT_GENRE === g.id ? ' active' : '');
+    btn.setAttribute('data-id', g.id);
+    btn.textContent = g.name;
+    btn.onclick = (function(id) { return function() { selectGenre(id, this); }; })(g.id);
     el.appendChild(btn);
   });
 }
-async function loadPage(page,reset){
-  if(IS_LOADING)return;
-  IS_LOADING=true;
-  var btn=document.getElementById('load-more-btn');
-  btn.disabled=true;
-  btn.textContent='読み込み中...';
-  var sort=CURRENT_SORT;
-  if(CURRENT_TAB==='tv'&&sort==='release_date.desc')sort='first_air_date.desc';
-  var params=new URLSearchParams({
-    api_key:API_KEY,language:'ja-JP',sort_by:sort,
-    with_watch_providers:PROVIDER_ID,watch_region:'JP',
-    'vote_count.gte':CURRENT_TAB==='movie'?500:200,page:page
+
+async function loadPage(page, reset) {
+  if (IS_LOADING) return;
+  IS_LOADING = true;
+  var btn = document.getElementById('load-more-btn');
+  btn.disabled = true;
+  btn.textContent = '読み込み中...';
+  var sort = CURRENT_SORT;
+  if (CURRENT_TAB === 'tv' && sort === 'release_date.desc') sort = 'first_air_date.desc';
+  var params = new URLSearchParams({
+    api_key: API_KEY, language: 'ja-JP', sort_by: sort,
+    with_watch_providers: PROVIDER_ID, watch_region: 'JP',
+    'vote_count.gte': CURRENT_TAB === 'movie' ? 500 : 200, page: page
   });
-  if(CURRENT_GENRE)params.set('with_genres',CURRENT_GENRE);
-  if(CURRENT_DECADE){
-    var dateKey=CURRENT_TAB==='movie'?'primary_release_date':'first_air_date';
-    var decadeNum=parseInt(CURRENT_DECADE);
-    params.set(dateKey+'.gte',CURRENT_DECADE+'-01-01');
-    params.set(dateKey+'.lte',CURRENT_DECADE==='1980'?'1989-12-31':(decadeNum+9)+'-12-31');
+  if (CURRENT_GENRE) params.set('with_genres', CURRENT_GENRE);
+  if (CURRENT_DECADE) {
+    var dateKey = CURRENT_TAB === 'movie' ? 'primary_release_date' : 'first_air_date';
+    var decadeNum = parseInt(CURRENT_DECADE);
+    params.set(dateKey + '.gte', CURRENT_DECADE + '-01-01');
+    params.set(dateKey + '.lte', CURRENT_DECADE === '1980' ? '1989-12-31' : (decadeNum + 9) + '-12-31');
   }
-  try{
-    var res=await fetch('https://api.themoviedb.org/3/discover/'+CURRENT_TAB+'?'+params.toString());
-    var data=await res.json();
-    if(data.status_code===7){clearApiKey();alert('APIキーが無効です');IS_LOADING=false;return;}
-    TOTAL_PAGES=Math.min(data.total_pages||1,500);
-    var total=data.total_results||0;
-    document.getElementById('stats-bar').innerHTML=
-      '<span>全 <strong>'+total.toLocaleString()+'</strong> 件'+
-      (CURRENT_GENRE&&GENRES[CURRENT_GENRE]?' ／ '+GENRES[CURRENT_GENRE]:'')+
-      ' ／ ページ '+page+' / '+TOTAL_PAGES+'</span>';
-    var results=data.results||[];
-    if(reset){
-      if(!results.length){
-        document.getElementById('card-grid-wrap').innerHTML='<div class="empty-msg">該当作品がありません</div>';
-        document.getElementById('load-more-wrap').style.display='none';
-        IS_LOADING=false;return;
+  try {
+    var res = await fetch('https://api.themoviedb.org/3/discover/' + CURRENT_TAB + '?' + params.toString());
+    var data = await res.json();
+    if (data.status_code === 7) { clearApiKey(); alert('APIキーが無効です'); IS_LOADING = false; return; }
+    TOTAL_PAGES = Math.min(data.total_pages || 1, 500);
+    var total = data.total_results || 0;
+    document.getElementById('stats-bar').innerHTML =
+      '<span>全 <strong>' + total.toLocaleString() + '</strong> 件' +
+      (CURRENT_GENRE && GENRES[CURRENT_GENRE] ? ' ／ ' + GENRES[CURRENT_GENRE] : '') +
+      ' ／ ページ ' + page + ' / ' + TOTAL_PAGES + '</span>';
+    var results = data.results || [];
+    if (reset) {
+      if (!results.length) {
+        document.getElementById('card-grid-wrap').innerHTML = '<div class="empty-msg">該当作品がありません</div>';
+        document.getElementById('load-more-wrap').style.display = 'none';
+        IS_LOADING = false; return;
       }
-      document.getElementById('card-grid-wrap').innerHTML='<div class="card-grid" id="card-grid"></div>';
+      document.getElementById('card-grid-wrap').innerHTML = '<div class="card-grid" id="card-grid"></div>';
     }
-    var grid=document.getElementById('card-grid');
-    results.forEach(function(item){grid.appendChild(buildCard(item));});
-    document.getElementById('load-more-wrap').style.display=CURRENT_PAGE<TOTAL_PAGES?'':'none';
-    btn.textContent='もっと見る';
-    btn.disabled=false;
-  }catch(e){
-    document.getElementById('stats-bar').innerHTML='<span style="color:var(--red)">読み込みエラー: '+escHtml(e.message)+'</span>';
+    var grid = document.getElementById('card-grid');
+    results.forEach(function(item) { grid.appendChild(buildCard(item)); });
+    document.getElementById('load-more-wrap').style.display = CURRENT_PAGE < TOTAL_PAGES ? '' : 'none';
+    btn.textContent = 'もっと見る';
+    btn.disabled = false;
+  } catch(e) {
+    document.getElementById('stats-bar').innerHTML = '<span style="color:var(--red)">読み込みエラー: ' + escHtml(e.message) + '</span>';
   }
-  IS_LOADING=false;
+  IS_LOADING = false;
 }
-function buildCard(item){
-  var title=item.title||item.name||'不明';
-  var year=(item.release_date||item.first_air_date||'').slice(0,4);
-  var rating=item.vote_average?item.vote_average.toFixed(1):'—';
-  var poster=item.poster_path?IMG_BASE+'w300'+item.poster_path:null;
-  var genres=(item.genre_ids||[]).slice(0,2).map(function(id){return GENRES[id]||'';}).filter(Boolean);
-  var div=document.createElement('div');
-  div.className='movie-card';
-  div.onclick=function(){openDetail(item);};
-  var posterHtml=poster
-    ?'<img class="card-poster" src="'+poster+'" loading="lazy" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">'
-      +'<div class="card-poster-placeholder" style="display:none">🎬</div>'
-    :'<div class="card-poster-placeholder">🎬</div>';
-  div.innerHTML=posterHtml+
-    '<div class="card-body">'+
-      '<div class="card-title">'+escHtml(title)+'</div>'+
-      '<div class="card-meta">'+
-        '<span class="card-year">'+(year||'—')+'</span>'+
-        (item.vote_average?'<div class="rating-badge"><span class="rating-star">★</span><span class="rating-val">'+rating+'</span></div>':'')+'</div>'+
-      (genres.length?'<div class="card-genres">'+genres.map(function(g){return'<span class="genre-tag">'+escHtml(g)+'</span>';}).join('')+'</div>':'')+
+
+function buildCard(item) {
+  var title = item.title || item.name || '不明';
+  var year = (item.release_date || item.first_air_date || '').slice(0, 4);
+  var rating = item.vote_average ? item.vote_average.toFixed(1) : '—';
+  var poster = item.poster_path ? IMG_BASE + 'w300' + item.poster_path : null;
+  var genres = (item.genre_ids || []).slice(0, 2).map(function(id) { return GENRES[id] || ''; }).filter(Boolean);
+  var div = document.createElement('div');
+  div.className = 'movie-card';
+  div.onclick = function() { openDetail(item); };
+  var ph = '<div class="card-poster-placeholder">🎬</div>';
+  var posterHtml = poster
+    ? '<img class="card-poster" src="' + poster + '" loading="lazy" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">' + '<div class="card-poster-placeholder" style="display:none">🎬</div>'
+    : ph;
+  div.innerHTML = posterHtml +
+    '<div class="card-body">' +
+      '<div class="card-title">' + escHtml(title) + '</div>' +
+      '<div class="card-meta">' +
+        '<span class="card-year">' + (year || '—') + '</span>' +
+        (item.vote_average ? '<div class="rating-badge"><span class="rating-star">&#9733;</span><span class="rating-val">' + rating + '</span></div>' : '') +
+      '</div>' +
+      (genres.length ? '<div class="card-genres">' + genres.map(function(g) { return '<span class="genre-tag">' + escHtml(g) + '</span>'; }).join('') + '</div>' : '') +
     '</div>';
   return div;
 }
-function starsHtml(avg){
-  var full=Math.floor(avg/2);
-  var half=(avg/2-full)>=0.4?1:0;
-  return '★'.repeat(full)+(half?'½':'')+'☆'.repeat(5-full-half);
+
+function starsHtml(avg) {
+  var full = Math.floor(avg / 2);
+  var half = (avg / 2 - full) >= 0.4 ? 1 : 0;
+  return '★'.repeat(full) + (half ? '½' : '') + '☆'.repeat(5 - full - half);
 }
-async function openDetail(item){
-  document.getElementById('detail-modal').className='open';
-  document.getElementById('modal-content').innerHTML='<div class="spinner-wrap"><div class="spinner"></div><div style="margin-top:8px">読み込み中...</div></div>';
-  try{
-    var ep=CURRENT_TAB==='movie'
-      ?'https://api.themoviedb.org/3/movie/'+item.id+'?api_key='+API_KEY+'&language=ja-JP&append_to_response=credits'
-      :'https://api.themoviedb.org/3/tv/'+item.id+'?api_key='+API_KEY+'&language=ja-JP&append_to_response=credits';
-    var res=await fetch(ep);
-    var d=await res.json();
-    var title=d.title||d.name||'不明';
-    var origTitle=d.original_title||d.original_name||'';
-    var year=(d.release_date||d.first_air_date||'').slice(0,4);
-    var rating=d.vote_average?d.vote_average.toFixed(1):'—';
-    var votes=(d.vote_count||0).toLocaleString();
-    var overview=d.overview||'概要は登録されていません。';
-    var poster=d.poster_path?IMG_BASE+'w300'+d.poster_path:null;
-    var backdrop=d.backdrop_path?IMG_BASE+'w780'+d.backdrop_path:null;
-    var genres=(d.genres||[]).map(function(g){return g.name;}).join(' / ')||'—';
-    var runtime=d.runtime?Math.floor(d.runtime/60)+'時間'+('0'+d.runtime%60).slice(-2)+'分'
-               :(d.episode_run_time&&d.episode_run_time[0]?d.episode_run_time[0]+'分/話':'—');
-    var seasons=d.number_of_seasons?d.number_of_seasons+'シーズン':'';
-    var cast=(d.credits&&d.credits.cast||[]).slice(0,5).map(function(c){return c.name;}).join('、')||'—';
-    var searchUrl='https://www.amazon.co.jp/s?k='+encodeURIComponent(title)+'&i=instant-video';
-    var backdropHtml=backdrop
-      ?'<img class="modal-backdrop" src="'+backdrop+'" onerror="this.outerHTML=\'<div class=\\\'modal-backdrop-ph\\\'></div>\'">'
-      :'<div class="modal-backdrop-ph"></div>';
-    var posterHtml=poster
-      ?'<img class="modal-poster" src="'+poster+'" onerror="this.outerHTML=\'<div class=\\\'modal-poster-ph\\\'>🎬</div>\'">'
-      :'<div class="modal-poster-ph">🎬</div>';
-    document.getElementById('modal-content').innerHTML=
-      backdropHtml+
-      '<div class="modal-body">'+
-        '<div class="modal-header-row">'+
-          posterHtml+
-          '<div class="modal-title-area">'+
-            '<div class="modal-title">'+escHtml(title)+'</div>'+
-            (origTitle&&origTitle!==title?'<div class="modal-original">'+escHtml(origTitle)+'</div>':'')+
-            '<div class="modal-tags">'+
-              (year?'<span class="modal-tag">📅 '+year+'</span>':'')+
-              '<span class="modal-tag">'+escHtml(genres)+'</span>'+
-              (runtime!=='—'?'<span class="modal-tag">⏱ '+runtime+'</span>':'')+
-              (seasons?'<span class="modal-tag">'+seasons+'</span>':'')+
-            '</div>'+
-          '</div>'+
-        '</div>'+
-        '<div class="modal-rating-row">'+
-          '<div class="modal-rating-big">'+rating+'</div>'+
-          '<div>'+
-            '<div class="modal-stars">'+(d.vote_average?starsHtml(d.vote_average):'')+'</div>'+
-            '<div class="modal-rating-sub">'+votes+' 件の評価</div>'+
-          '</div>'+
-        '</div>'+
-        '<div class="modal-sec">あらすじ</div>'+
-        '<div class="modal-overview">'+escHtml(overview)+'</div>'+
-        '<hr class="modal-divider">'+
-        '<div class="modal-info-grid">'+
-          '<div class="modal-info-item"><div class="lbl">出演</div><div class="val">'+escHtml(cast)+'</div></div>'+
-          '<div class="modal-info-item"><div class="lbl">評価数</div><div class="val">'+votes+' 件</div></div>'+
-        '</div>'+
-        '<a class="prime-link" href="'+searchUrl+'" target="_blank" rel="noopener">▶ Prime Videoで検索</a>'+
+
+async function openDetail(item) {
+  document.getElementById('detail-modal').className = 'open';
+  document.getElementById('modal-content').innerHTML = '<div class="spinner-wrap"><div class="spinner"></div><div style="margin-top:8px">読み込み中...</div></div>';
+  try {
+    var ep = CURRENT_TAB === 'movie'
+      ? 'https://api.themoviedb.org/3/movie/' + item.id + '?api_key=' + API_KEY + '&language=ja-JP&append_to_response=credits'
+      : 'https://api.themoviedb.org/3/tv/' + item.id + '?api_key=' + API_KEY + '&language=ja-JP&append_to_response=credits';
+    var res = await fetch(ep);
+    var d = await res.json();
+    var title = d.title || d.name || '不明';
+    var origTitle = d.original_title || d.original_name || '';
+    var year = (d.release_date || d.first_air_date || '').slice(0, 4);
+    var rating = d.vote_average ? d.vote_average.toFixed(1) : '—';
+    var votes = (d.vote_count || 0).toLocaleString();
+    var overview = d.overview || '概要は登録されていません。';
+    var poster = d.poster_path ? IMG_BASE + 'w300' + d.poster_path : null;
+    var backdrop = d.backdrop_path ? IMG_BASE + 'w780' + d.backdrop_path : null;
+    var genres = (d.genres || []).map(function(g) { return g.name; }).join(' / ') || '—';
+    var runtime = d.runtime ? Math.floor(d.runtime / 60) + '時間' + ('0' + d.runtime % 60).slice(-2) + '分'
+                 : (d.episode_run_time && d.episode_run_time[0] ? d.episode_run_time[0] + '分/話' : '—');
+    var seasons = d.number_of_seasons ? d.number_of_seasons + 'シーズン' : '';
+    var cast = (d.credits && d.credits.cast || []).slice(0, 5).map(function(c) { return c.name; }).join('、') || '—';
+    var searchUrl = 'https://www.amazon.co.jp/s?k=' + encodeURIComponent(title) + '&i=instant-video';
+    var backdropHtml = backdrop
+      ? '<img class="modal-backdrop" src="' + backdrop + '" onerror="this.style.display=\'none\'">'
+      : '<div class="modal-backdrop-ph"></div>';
+    var posterHtml = poster
+      ? '<img class="modal-poster" src="' + poster + '" onerror="this.style.display=\'none\'">'
+      : '<div class="modal-poster-ph">🎬</div>';
+    document.getElementById('modal-content').innerHTML =
+      backdropHtml +
+      '<div class="modal-body">' +
+        '<div class="modal-header-row">' +
+          posterHtml +
+          '<div class="modal-title-area">' +
+            '<div class="modal-title">' + escHtml(title) + '</div>' +
+            (origTitle && origTitle !== title ? '<div class="modal-original">' + escHtml(origTitle) + '</div>' : '') +
+            '<div class="modal-tags">' +
+              (year ? '<span class="modal-tag">📅 ' + year + '</span>' : '') +
+              '<span class="modal-tag">' + escHtml(genres) + '</span>' +
+              (runtime !== '—' ? '<span class="modal-tag">⏱ ' + runtime + '</span>' : '') +
+              (seasons ? '<span class="modal-tag">' + seasons + '</span>' : '') +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="modal-rating-row">' +
+          '<div class="modal-rating-big">' + rating + '</div>' +
+          '<div>' +
+            '<div class="modal-stars">' + (d.vote_average ? starsHtml(d.vote_average) : '') + '</div>' +
+            '<div class="modal-rating-sub">' + votes + ' 件の評価</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="modal-sec">あらすじ</div>' +
+        '<div class="modal-overview">' + escHtml(overview) + '</div>' +
+        '<hr class="modal-divider">' +
+        '<div class="modal-info-grid">' +
+          '<div class="modal-info-item"><div class="lbl">出演</div><div class="val">' + escHtml(cast) + '</div></div>' +
+          '<div class="modal-info-item"><div class="lbl">評価数</div><div class="val">' + votes + ' 件</div></div>' +
+        '</div>' +
+        '<a class="prime-link" href="' + searchUrl + '" target="_blank" rel="noopener">&#9658; Prime Videoで検索</a>' +
       '</div>';
-  }catch(e){
-    document.getElementById('modal-content').innerHTML='<div class="empty-msg">読み込みエラー</div>';
+  } catch(e) {
+    document.getElementById('modal-content').innerHTML = '<div class="empty-msg">読み込みエラー</div>';
   }
 }
-function closeModal(){document.getElementById('detail-modal').className='';}
-function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
-loadClaudeKey();
-(function(){
-  var saved=localStorage.getItem('tmdb_key');
-  if(saved){
-    API_KEY=saved;
-    document.getElementById('api-key-input').value=saved;
-    document.getElementById('api-setup').style.display='none';
+function closeModal() { document.getElementById('detail-modal').className = ''; }
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+(function() {
+  loadClaudeKey();
+  var saved = localStorage.getItem('tmdb_key');
+  if (saved) {
+    API_KEY = saved;
+    document.getElementById('api-key-input').value = saved;
+    document.getElementById('api-setup').style.display = 'none';
     updateApiIndicator(true);
-    loadGenres().then(function(){resetAndLoad();});
+    loadGenres().then(function() { resetAndLoad(); });
   }
 })();
 </script>
