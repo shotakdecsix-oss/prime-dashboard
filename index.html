@@ -189,14 +189,14 @@ function saveApiKey(){
   var key=document.getElementById('api-key-input').value.trim();
   if(!key){alert('APIキーを入力してください');return;}
   API_KEY=key;
-  sessionStorage.setItem('tmdb_key',key);
+  localStorage.setItem('tmdb_key',key);
   document.getElementById('api-setup').style.display='none';
   updateApiIndicator(true);
   loadGenres().then(function(){resetAndLoad();});
 }
 function clearApiKey(){
   API_KEY='';
-  sessionStorage.removeItem('tmdb_key');
+  localStorage.removeItem('tmdb_key');
   updateApiIndicator(false);
   document.getElementById('api-key-input').value='';
   document.getElementById('card-grid-wrap').innerHTML='<div class="empty-msg">上の設定からTMDB APIキーを入力してください 🎬</div>';
@@ -406,7 +406,7 @@ function closeModal(){document.getElementById('detail-modal').className='';}
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 (function(){
-  var saved=sessionStorage.getItem('tmdb_key');
+  var saved=localStorage.getItem('tmdb_key');
   if(saved){
     API_KEY=saved;
     document.getElementById('api-key-input').value=saved;
