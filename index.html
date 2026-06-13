@@ -77,6 +77,21 @@
     .spinner-wrap{text-align:center;padding:40px;color:var(--muted);font-size:.8rem;}
     .spinner{display:inline-block;width:32px;height:32px;border:3px solid rgba(0,168,225,.2);border-top-color:var(--prime);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:10px;}
     .empty-msg{text-align:center;padding:48px 20px;color:var(--muted);font-size:.85rem;}
+    .ai-panel{background:linear-gradient(135deg,#0d1a2e 0%,#0a1628 100%);border:1px solid #1a3a5c;border-radius:12px;padding:16px 20px;margin-bottom:16px;}
+    .ai-panel-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:.8rem;color:#7ec8e3;font-weight:600;letter-spacing:.04em;}
+    .ai-panel-header svg{flex-shrink:0;}
+    .ai-input-row{display:flex;gap:8px;}
+    .ai-input{flex:1;background:#0a1f38;border:1px solid #1a3a5c;border-radius:8px;padding:9px 14px;color:var(--text);font-size:.82rem;outline:none;transition:border-color .15s;}
+    .ai-input:focus{border-color:var(--prime);}
+    .ai-input::placeholder{color:#445566;}
+    .ai-submit{background:var(--prime);border:none;border-radius:8px;padding:9px 16px;color:#fff;font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:opacity .12s;}
+    .ai-submit:hover{opacity:.85;}
+    .ai-submit:disabled{opacity:.45;cursor:default;}
+    .ai-reason{margin-top:10px;font-size:.76rem;color:#7ec8e3;background:#071422;border-left:3px solid var(--prime);padding:7px 12px;border-radius:0 6px 6px 0;display:none;}
+    .ai-key-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:.72rem;color:var(--muted);}
+    .ai-key-input{flex:1;background:#071422;border:1px solid #1a3a5c;border-radius:6px;padding:5px 10px;color:var(--text);font-size:.72rem;outline:none;}
+    .ai-key-save{background:transparent;border:1px solid #1a3a5c;border-radius:6px;padding:4px 10px;color:var(--muted);font-size:.7rem;cursor:pointer;}
+    .ai-key-save:hover{border-color:var(--prime);color:var(--prime);}
     .genre-toggle{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:3px 9px;font-size:.68rem;cursor:pointer;white-space:nowrap;transition:all .12s;}
     .genre-toggle:hover{border-color:var(--prime);color:var(--prime);}
     .genre-chips-wrap{overflow:hidden;transition:max-height .25s ease,opacity .25s ease;}
@@ -142,6 +157,23 @@
   <button class="tab" id="tab-tv" onclick="switchTab('tv')">📺 ドラマ・アニメ</button>
 </div>
 
+<div class="ai-panel" id="ai-panel">
+  <div class="ai-panel-header">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><path d="M12 6v6l4 2"/></svg>
+    AI おすすめ
+  </div>
+  <div class="ai-key-row" id="ai-key-row">
+    <span>Claude APIキー</span>
+    <input class="ai-key-input" id="ai-key-input" type="password" placeholder="sk-ant-..." />
+    <button class="ai-key-save" onclick="saveClaudeKey()">保存</button>
+    <span id="ai-key-status" style="color:#3a3"></span>
+  </div>
+  <div class="ai-input-row">
+    <input class="ai-input" id="ai-mood-input" placeholder="今夜の気分を入力… 例:「だらっと笑えるやつ」「感動したい」「90年代の名作」" onkeydown="if(event.key==='Enter')runAiSuggest()" />
+    <button class="ai-submit" id="ai-submit-btn" onclick="runAiSuggest()">✨ おすすめを探す</button>
+  </div>
+  <div class="ai-reason" id="ai-reason"></div>
+</div>
 <div class="filter-bar" style="flex-direction:column;align-items:stretch;gap:8px;">
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
     <span class="filter-label">ジャンル</span>
@@ -224,6 +256,90 @@ function clearApiKey(){
   document.getElementById('stats-bar').innerHTML='<span>上の設定からTMDB APIキーを入力してください</span>';
   document.getElementById('load-more-wrap').style.display='none';
 }
+// ── Claude API key ──
+var CLAUDE_KEY='';
+function saveClaudeKey(){
+  var k=document.getElementById('ai-key-input').value.trim();
+  if(!k)return;
+  CLAUDE_KEY=k;
+  localStorage.setItem('claude_api_key',k);
+  document.getElementById('ai-key-status').textContent='✓ 保存済み';
+  document.getElementById('ai-key-input').value='';
+}
+function loadClaudeKey(){
+  var k=localStorage.getItem('claude_api_key')||'';
+  if(k){CLAUDE_KEY=k;document.getElementById('ai-key-status').textContent='✓ 保存済み';}
+}
+
+// ── AI suggest ──
+function runAiSuggest(){
+  var mood=document.getElementById('ai-mood-input').value.trim();
+  if(!mood)return;
+  if(!CLAUDE_KEY){alert('Claude APIキーを入力してください');return;}
+  var btn=document.getElementById('ai-submit-btn');
+  btn.disabled=true;btn.textContent='考え中…';
+  var isMovie=CURRENT_TAB==='movie';
+  var movieGenres='Action=28,Adventure=12,Animation=16,Comedy=35,Crime=80,Documentary=99,Drama=18,Family=10751,Fantasy=14,History=36,Horror=27,Music=10402,Mystery=9648,Romance=10749,SciFi=878,Thriller=53,War=10752,Western=37';
+  var tvGenres='Action&Adventure=10759,Animation=16,Comedy=35,Crime=80,Documentary=99,Drama=18,Family=10751,Kids=10762,Mystery=9648,Reality=10764,SciFi&Fantasy=10765,War&Politics=10768,Western=37';
+  var sysPrompt='You are a movie/TV recommendation assistant for Amazon Prime Video Japan. Given the user's mood, choose the best TMDB Discover filters. Respond with ONLY valid JSON, no markdown, no explanation outside the JSON.';
+  var userPrompt='User mood: '+mood+'
+Content type: '+(isMovie?'movie':'TV show')+'
+
+Available genre IDs: '+(isMovie?movieGenres:tvGenres)+'
+
+Respond with JSON:
+{
+  "genre_id": <number or null>,
+  "sort_by": "vote_average.desc" | "popularity.desc" | "release_date.desc",
+  "decade": "2020" | "2010" | "2000" | "1990" | "1980" | "",
+  "reason": "<Japanese, 1 sentence why>"
+}';
+  fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key':CLAUDE_KEY,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body:JSON.stringify({
+      model:'claude-haiku-4-5-20251001',
+      max_tokens:256,
+      system:sysPrompt,
+      messages:[{role:'user',content:userPrompt}]
+    })
+  }).then(function(r){return r.json();}).then(function(data){
+    if(data.error){throw new Error(data.error.message);}
+    var text=data.content[0].text.trim();
+    var json=JSON.parse(text);
+    // Apply filters
+    if(json.genre_id){
+      CURRENT_GENRE=json.genre_id;
+      // Update chip UI
+      document.querySelectorAll('.chip').forEach(function(c){c.classList.remove('active');});
+      var chips=document.querySelectorAll('.chip');
+      chips.forEach(function(c){if(parseInt(c.getAttribute('data-id'))===json.genre_id)c.classList.add('active');});
+    } else {
+      CURRENT_GENRE=0;
+      var firstChip=document.querySelector('.chip');
+      if(firstChip)firstChip.classList.add('active');
+    }
+    if(json.sort_by){document.getElementById('sort-select').value=json.sort_by;}
+    if(json.decade!==undefined){
+      CURRENT_DECADE=json.decade||'';
+      document.getElementById('decade-select').value=CURRENT_DECADE;
+    }
+    var reasonEl=document.getElementById('ai-reason');
+    reasonEl.textContent='✨ '+json.reason;
+    reasonEl.style.display='block';
+    resetAndLoad();
+  }).catch(function(e){
+    alert('エラー: '+e.message);
+  }).finally(function(){
+    btn.disabled=false;btn.textContent='✨ おすすめを探す';
+  });
+}
+
 function toggleGenreChips(){
   GENRE_OPEN=!GENRE_OPEN;
   var wrap=document.getElementById('genre-chips-wrap');
