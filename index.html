@@ -58,6 +58,14 @@
     .ai-input::placeholder{color:#445566;}
     .ai-submit{background:var(--prime);border:none;border-radius:8px;padding:8px 14px;color:#fff;font-size:.75rem;font-weight:700;cursor:pointer;white-space:nowrap;}
     .ai-submit:disabled{opacity:.45;cursor:default;}
+    .ai-toggle-row{display:flex;align-items:center;gap:8px;margin-top:9px;}
+    .ai-toggle-label{font-size:.72rem;color:#7ec8e3;cursor:pointer;user-select:none;}
+    .ai-toggle{position:relative;display:inline-block;width:34px;height:18px;flex-shrink:0;}
+    .ai-toggle input{opacity:0;width:0;height:0;}
+    .ai-toggle-slider{position:absolute;inset:0;background:#1a3a5c;border-radius:18px;transition:.2s;}
+    .ai-toggle-slider:before{content:'';position:absolute;width:12px;height:12px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s;}
+    .ai-toggle input:checked + .ai-toggle-slider{background:var(--prime);}
+    .ai-toggle input:checked + .ai-toggle-slider:before{transform:translateX(16px);}
     .ai-progress{margin-top:9px;font-size:.73rem;color:#7ec8e3;display:none;}
     .ai-progress-bar{height:3px;background:#1a3a5c;border-radius:2px;margin-top:6px;overflow:hidden;}
     .ai-progress-fill{height:100%;background:var(--prime);border-radius:2px;transition:width .4s ease;}
@@ -181,7 +189,7 @@
     <div class="prime-badge">prime</div>
     <div class="header-title">
       <h1>Prime Video ランキング</h1>
-      <p>TMDB × 評価順 / 人気順 / 新着順 ｜ 2026/06/18 14:07 JST</p>
+      <p>TMDB × 評価順 / 人気順 / 新着順 ｜ 2026/06/18 14:12 JST</p>
     </div>
   </div>
   <div class="header-right">
@@ -209,6 +217,13 @@
     <div class="ai-input-row">
       <input class="ai-input" id="ai-mood-input" placeholder="例:「だらっと笑えるやつ」「感動したい」「90年代の名作」「家族で見られるもの」" />
       <button class="ai-submit" id="ai-submit-btn" onclick="runAiSuggest()">✨ 探す</button>
+    </div>
+    <div class="ai-toggle-row">
+      <label class="ai-toggle">
+        <input type="checkbox" id="prime-only-toggle">
+        <span class="ai-toggle-slider"></span>
+      </label>
+      <span class="ai-toggle-label" onclick="document.getElementById('prime-only-toggle').click()">Prime対象のみ表示</span>
     </div>
     <div class="ai-progress" id="ai-progress">
       <span id="ai-progress-text">選んでいます...</span>
@@ -317,7 +332,11 @@ async function runAiSuggest() {
   btn.textContent = '...';
 
   try {
-    // ── Step 1: Claudeの知識から8作品を推薦 ──
+    var primeOnly = document.getElementById('prime-only-toggle').checked;
+    // Prime-onlyモードは多めに取得してフィルタするため12本、通常は8本
+    var requestCount = primeOnly ? 12 : 8;
+
+    // ── Step 1: Claudeの知識から推薦 ──
     setProgress(10, 'Claudeが選んでいます...');
     var tabHint = CURRENT_TAB === 'movie' ? '映画' : 'ドラマ・アニメ';
     var genreName = GENRES[CURRENT_GENRE] || '';
@@ -327,7 +346,7 @@ async function runAiSuggest() {
       ctx = '（' + [genreName, decadeHint].filter(Boolean).join('、') + 'を考慮すること）';
     }
 
-    var sysPrompt = 'あなたはAmazon Prime Videoに精通したフィルムコンシェルジュです。ユーザーの気分・好みに合う' + tabHint + 'を8本推薦してください。\n条件:\n- Amazon Prime Video Japanで視聴可能な実在の作品のみ\n- 以下のJSON配列のみ返す（マークダウン・説明文不要）\n[{"title":"タイトル（英語可）","year":2020,"type":"movie","reason":"推薦理由20字以内"}]';
+    var sysPrompt = 'あなたはAmazon Prime Videoに精通したフィルムコンシェルジュです。ユーザーの気分・好みに合う' + tabHint + 'を' + requestCount + '本推薦してください。\n条件:\n- Amazon Prime Video Japanで視聴可能な実在の作品のみ\n- 以下のJSON配列のみ返す（マークダウン・説明文不要）\n[{"title":"タイトル（英語可）","year":2020,"type":"movie","reason":"推薦理由20字以内"}]';
 
     var r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -339,7 +358,7 @@ async function runAiSuggest() {
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 900,
+        max_tokens: primeOnly ? 1300 : 900,
         system: sysPrompt,
         messages: [{ role: 'user', content: '気分・好み: "' + mood + '"' + ctx }]
       })
@@ -349,7 +368,7 @@ async function runAiSuggest() {
     var text = d.content[0].text.trim().replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/, '');
     var recs = JSON.parse(text);
 
-    // ── Step 2: TMDBで各作品の情報を検索（CORSネイティブ・プロキシ不要） ──
+    // ── Step 2: TMDBで各作品を検索 + Watch Providers チェック ──
     AI_PICKS = {};
     var enriched = [];
     for (var i = 0; i < recs.length; i++) {
@@ -387,13 +406,18 @@ async function runAiSuggest() {
         enriched.push({ rec: rec, tmdbData: tmdbItem, mediaType: mediaType, isPrime: isPrime });
         console.log('[AI TMDB] "' + rec.title + '" → ' + (tmdbItem ? (tmdbItem.title || tmdbItem.name) : 'not found') + (isPrime ? ' ✓Prime' : ' ×Prime外'));
       } catch(e2) {
-        enriched.push({ rec: rec, tmdbData: null, mediaType: 'movie' });
+        enriched.push({ rec: rec, tmdbData: null, mediaType: 'movie', isPrime: false });
       }
       if (i < recs.length - 1) await new Promise(function(resolve) { setTimeout(resolve, 150); });
     }
 
+    // Prime-onlyモードならフィルタして最大8件
+    var displayList = primeOnly
+      ? enriched.filter(function(e) { return e.isPrime; }).slice(0, 8)
+      : enriched.slice(0, 8);
+
     setProgress(95, '表示中...');
-    renderAiPicks(enriched, mood);
+    renderAiPicks(displayList, mood, primeOnly);
     setProgress(100, '完了');
     setTimeout(hideProgress, 500);
 
@@ -405,13 +429,21 @@ async function runAiSuggest() {
   btn.textContent = '✨ 探す';
 }
 
-function renderAiPicks(enriched, mood) {
+function renderAiPicks(enriched, mood, primeOnly) {
   var wrap = document.getElementById('ai-picks-wrap');
+  var countNote = (primeOnly && enriched.length < 8)
+    ? '<span style="font-size:.68rem;color:var(--muted);margin-left:6px">(' + enriched.length + '件のみ確認できました)</span>'
+    : '';
+  var primeTag = primeOnly
+    ? '<span style="font-size:.63rem;background:rgba(0,168,225,.15);border:1px solid rgba(0,168,225,.4);color:var(--prime);border-radius:8px;padding:1px 7px;margin-left:4px">✓ Prime対象のみ</span>'
+    : '';
   wrap.innerHTML =
     '<div class="ai-picks-section">' +
       '<div class="ai-picks-header">' +
         '<span class="ai-picks-title">✨ AIセレクション</span>' +
+        primeTag +
         '<span class="ai-picks-mood">&ldquo;' + escHtml(mood) + '&rdquo;</span>' +
+        countNote +
         '<button class="ai-clear-btn" onclick="clearAiPicks()">&#x2715; クリア</button>' +
       '</div>' +
       '<div class="ai-card-grid" id="ai-card-grid"></div>' +
