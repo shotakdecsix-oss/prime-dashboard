@@ -189,7 +189,7 @@
     <div class="prime-badge">prime</div>
     <div class="header-title">
       <h1>Prime Video ランキング</h1>
-      <p>TMDB × 評価順 / 人気順 / 新着順 ｜ 2026/06/18 14:12 JST</p>
+      <p>TMDB × 評価順 / 人気順 / 新着順 ｜ 2026/06/18 14:20 JST</p>
     </div>
   </div>
   <div class="header-right">
@@ -223,7 +223,7 @@
         <input type="checkbox" id="prime-only-toggle">
         <span class="ai-toggle-slider"></span>
       </label>
-      <span class="ai-toggle-label" onclick="document.getElementById('prime-only-toggle').click()">Prime対象のみ表示</span>
+      <span class="ai-toggle-label" id="prime-only-label" onclick="document.getElementById('prime-only-toggle').click()">すべて表示中</span>
     </div>
     <div class="ai-progress" id="ai-progress">
       <span id="ai-progress-text">選んでいます...</span>
@@ -334,7 +334,7 @@ async function runAiSuggest() {
   try {
     var primeOnly = document.getElementById('prime-only-toggle').checked;
     // Prime-onlyモードは多めに取得してフィルタするため12本、通常は8本
-    var requestCount = primeOnly ? 12 : 8;
+    var requestCount = primeOnly ? 16 : 8;
 
     // ── Step 1: Claudeの知識から推薦 ──
     setProgress(10, 'Claudeが選んでいます...');
@@ -358,7 +358,7 @@ async function runAiSuggest() {
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: primeOnly ? 1300 : 900,
+        max_tokens: primeOnly ? 1700 : 900,
         system: sysPrompt,
         messages: [{ role: 'user', content: '気分・好み: "' + mood + '"' + ctx }]
       })
@@ -507,6 +507,9 @@ function buildAiCard(item, reason, rank, isPrime) {
 
 document.getElementById('ai-mood-input').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') runAiSuggest();
+});
+document.getElementById('prime-only-toggle').addEventListener('change', function() {
+  document.getElementById('prime-only-label').textContent = this.checked ? 'Prime対象のみ表示中' : 'すべて表示中';
 });
 
 // ── Genre / filter ──
