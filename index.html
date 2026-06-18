@@ -197,7 +197,7 @@
     <div class="prime-badge">prime</div>
     <div class="header-title">
       <h1>Prime Video ランキング</h1>
-      <p>TMDB × 評価順 / 人気順 / 新着順 ｜ 2026/06/18 23:53 JST</p>
+      <p>TMDB × 評価順 / 人気順 / 新着順 ｜ 2026/06/18 23:58 JST</p>
     </div>
   </div>
   <div class="header-right">
@@ -835,12 +835,14 @@ function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'
 // ── Init ──
 (function() {
   // URLハッシュからClaudeキーを受け取る（例: #claude=sk-ant-xxx）
-  var hashParams = new URLSearchParams(window.location.hash.slice(1));
-  var claudeFromUrl = hashParams.get('claude');
-  if (claudeFromUrl && claudeFromUrl.startsWith('sk-ant-')) {
-    localStorage.setItem('claude_key', claudeFromUrl);
-    history.replaceState(null, '', window.location.pathname + window.location.search);
-  }
+  try {
+    var hashParams = new URLSearchParams(window.location.hash.slice(1));
+    var claudeFromUrl = hashParams.get('claude');
+    if (claudeFromUrl && claudeFromUrl.length > 10) {
+      localStorage.setItem('claude_key', claudeFromUrl);
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+  } catch(e) { console.warn('hash parse error', e); }
 
   // プリセットが設定されていればlocalStorageに上書き保存
   if (TMDB_KEY_PRESET) localStorage.setItem('tmdb_key', TMDB_KEY_PRESET);
