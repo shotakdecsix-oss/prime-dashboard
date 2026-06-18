@@ -159,6 +159,14 @@
     .modal-info-item .lbl{font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;}
     .modal-info-item .val{font-size:.76rem;font-weight:600;margin-top:2px;line-height:1.4;}
     .prime-link{display:inline-flex;align-items:center;gap:5px;background:var(--prime);color:#fff;border:none;border-radius:8px;padding:7px 16px;font-size:.78rem;font-weight:700;cursor:pointer;text-decoration:none;margin-top:12px;}
+    .modal-action-row{display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap;}
+    .modal-ai-btn{display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#1a2a4a,#0d1f38);border:1px solid rgba(0,168,225,.5);color:#7ec8e3;border-radius:8px;padding:7px 14px;font-size:.76rem;font-weight:700;cursor:pointer;}
+    .modal-ai-btn:hover{background:rgba(0,168,225,.15);}
+    .modal-ai-btn:disabled{opacity:.45;cursor:default;}
+    .modal-ai-analysis{margin-top:14px;background:linear-gradient(135deg,#071422,#0a1628);border:1px solid #1a3a5c;border-radius:10px;padding:13px 15px;font-size:.78rem;line-height:1.8;color:var(--text);}
+    .modal-ai-analysis .ai-sec{font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#7ec8e3;margin:10px 0 4px;}
+    .modal-ai-analysis .ai-sec:first-child{margin-top:0;}
+    .modal-ai-analysis .ai-val{opacity:.9;}
   </style>
 </head>
 <body>
@@ -189,7 +197,7 @@
     <div class="prime-badge">prime</div>
     <div class="header-title">
       <h1>Prime Video ランキング</h1>
-      <p>TMDB × 評価順 / 人気順 / 新着順 ｜ 2026/06/18 15:02 JST</p>
+      <p>TMDB × 評価順 / 人気順 / 新着順 ｜ 2026/06/18 15:15 JST</p>
     </div>
   </div>
   <div class="header-right">
@@ -291,6 +299,7 @@ var CURRENT_DECADE = '';
 var GENRE_OPEN = false;
 var AI_PICKS = {};
 var CURRENT_DETAIL_ITEM = null;
+var MODAL_DETAIL_CACHE = null;
 var IMG_BASE = 'https://image.tmdb.org/t/p/';
 var PROVIDER_ID = 9;
 
@@ -711,6 +720,7 @@ async function openDetail(item) {
     var cast = (d.credits && d.credits.cast || []).slice(0, 5).map(function(c) { return c.name; }).join('、') || '—';
     var searchUrl = 'https://www.amazon.co.jp/s?k=' + encodeURIComponent(title) + '&i=instant-video';
     var aiReason = AI_PICKS[item.id] ? '<div class="modal-ai-reason">✨ AIコメント: ' + escHtml(AI_PICKS[item.id]) + '</div>' : '';
+    MODAL_DETAIL_CACHE = { title: title, origTitle: origTitle, year: year, genres: genres, overview: overview, cast: cast, rating: rating, votes: votes, runtime: runtime, seasons: seasons, type: CURRENT_TAB };
     var backdropHtml = backdrop
       ? '<img class="modal-backdrop" src="' + backdrop + '" onerror="this.style.display=\'none\'">'
       : '<div class="modal-backdrop-ph"></div>';
@@ -748,10 +758,71 @@ async function openDetail(item) {
           '<div class="modal-info-item"><div class="lbl">出演</div><div class="val">' + escHtml(cast) + '</div></div>' +
           '<div class="modal-info-item"><div class="lbl">評価数</div><div class="val">' + votes + ' 件</div></div>' +
         '</div>' +
-        '<a class="prime-link" href="' + searchUrl + '" target="_blank" rel="noopener">&#9658; Prime Videoで検索</a>' +
+        '<div class="modal-action-row">' +
+          '<a class="prime-link" href="' + searchUrl + '" target="_blank" rel="noopener">&#9658; Prime Videoで検索</a>' +
+          (CLAUDE_KEY ? '<button class="modal-ai-btn" id="modal-ai-btn" onclick="runModalAiAnalysis()">✨ AI分析</button>' : '') +
+        '</div>' +
+        '<div id="modal-ai-analysis"></div>' +
       '</div>';
   } catch(e) {
     document.getElementById('modal-content').innerHTML = '<div class="empty-msg">読み込みエラー</div>';
+  }
+}
+
+async function runModalAiAnalysis() {
+  if (!CLAUDE_KEY || !MODAL_DETAIL_CACHE) return;
+  var btn = document.getElementById('modal-ai-btn');
+  var wrap = document.getElementById('modal-ai-analysis');
+  if (!btn || !wrap) return;
+  btn.disabled = true;
+  btn.textContent = '分析中...';
+  wrap.innerHTML = '<div style="text-align:center;padding:16px;color:var(--muted);font-size:.75rem">Claudeが分析しています...</div>';
+
+  var m = MODAL_DETAIL_CACHE;
+  var typeLabel = m.type === 'movie' ? '映画' : 'ドラマ・アニメ';
+  var info = [
+    'タイトル: ' + m.title + (m.origTitle && m.origTitle !== m.title ? ' (' + m.origTitle + ')' : ''),
+    '年: ' + (m.year || '不明'),
+    'ジャンル: ' + m.genres,
+    '評価: ' + m.rating + '/10 (' + m.votes + '件)',
+    m.runtime !== '—' ? '上映時間: ' + m.runtime : '',
+    m.seasons ? 'シーズン数: ' + m.seasons : '',
+    '出演: ' + m.cast,
+    'あらすじ: ' + m.overview,
+  ].filter(Boolean).join('\n');
+
+  try {
+    var r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': CLAUDE_KEY,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 700,
+        system: 'あなたは映画・ドラマの批評家です。与えられた作品情報をもとに日本語で簡潔に分析してください。以下のJSON形式のみ返してください（マークダウン不要）:\n{"recommend":"こんな人におすすめ（50字以内）","highlight":"見どころ（60字以内）","similar":"似た作品を2〜3タイトル（カンマ区切り）","verdict":"総評（50字以内）"}',
+        messages: [{ role: 'user', content: typeLabel + 'の情報:\n' + info }]
+      })
+    });
+    var d = await r.json();
+    if (d.error) throw new Error(d.error.message);
+    var text = d.content[0].text.trim().replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/, '');
+    var analysis = JSON.parse(text);
+    wrap.innerHTML =
+      '<div class="modal-ai-analysis">' +
+        '<div class="ai-sec">こんな人におすすめ</div><div class="ai-val">' + escHtml(analysis.recommend || '—') + '</div>' +
+        '<div class="ai-sec">見どころ</div><div class="ai-val">' + escHtml(analysis.highlight || '—') + '</div>' +
+        '<div class="ai-sec">似た作品</div><div class="ai-val">' + escHtml(analysis.similar || '—') + '</div>' +
+        '<div class="ai-sec">総評</div><div class="ai-val">' + escHtml(analysis.verdict || '—') + '</div>' +
+      '</div>';
+    btn.textContent = '✨ AI分析済み';
+  } catch(e) {
+    wrap.innerHTML = '<div style="color:var(--red);font-size:.75rem;padding:8px">分析エラー: ' + escHtml(e.message) + '</div>';
+    btn.disabled = false;
+    btn.textContent = '✨ AI分析';
   }
 }
 
