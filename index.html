@@ -202,14 +202,14 @@
   <div class="ai-panel">
     <div class="ai-panel-header">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-      AI おすすめ — 気分を伝えると、Claudeが作品リストから直接選びます
+      AI おすすめ — 気分を伝えると、Claudeが作品を直接選びます
     </div>
     <div class="ai-input-row">
       <input class="ai-input" id="ai-mood-input" placeholder="例:「だらっと笑えるやつ」「感動したい」「90年代の名作」「家族で見られるもの」" />
       <button class="ai-submit" id="ai-submit-btn" onclick="runAiSuggest()">✨ 探す</button>
     </div>
     <div class="ai-progress" id="ai-progress">
-      <span id="ai-progress-text">作品リストを取得中...</span>
+      <span id="ai-progress-text">選んでいます...</span>
       <div class="ai-progress-bar"><div class="ai-progress-fill" id="ai-progress-fill" style="width:0%"></div></div>
     </div>
   </div>
@@ -245,9 +245,7 @@
 <div class="stats-bar" id="stats-bar"><span>読み込み中...</span></div>
 
 <div class="main">
-  <!-- AI picks injected here -->
   <div id="ai-picks-wrap"></div>
-  <!-- Normal grid -->
   <div id="card-grid-wrap"><div class="spinner-wrap"><div class="spinner"></div><div style="margin-top:8px">読み込み中...</div></div></div>
   <div class="load-more-wrap" id="load-more-wrap" style="display:none">
     <button class="load-more-btn" id="load-more-btn" onclick="loadMore()">もっと見る</button>
@@ -274,7 +272,7 @@ var GENRES = {};
 var IS_LOADING = false;
 var CURRENT_DECADE = '';
 var GENRE_OPEN = false;
-var AI_PICKS = {};      // id -> reason
+var AI_PICKS = {};
 var CURRENT_DETAIL_ITEM = null;
 var IMG_BASE = 'https://image.tmdb.org/t/p/';
 var PROVIDER_ID = 9;
@@ -296,7 +294,7 @@ function openSetup() {
   document.getElementById('setup-overlay').classList.remove('hidden');
 }
 
-// ── AI suggest (full two-pass) ──
+// ── Progress helpers ──
 function setProgress(pct, text) {
   document.getElementById('ai-progress').style.display = 'block';
   document.getElementById('ai-progress-text').textContent = text;
@@ -304,6 +302,7 @@ function setProgress(pct, text) {
 }
 function hideProgress() { document.getElementById('ai-progress').style.display = 'none'; }
 
+// ── AI suggest: Claude知識から選書 → TMDBで情報補完 ──
 async function runAiSuggest() {
   var mood = document.getElementById('ai-mood-input').value.trim();
   if (!mood) return;
@@ -316,131 +315,73 @@ async function runAiSuggest() {
   btn.textContent = '...';
 
   try {
-    // Step 1: fetch candidate pool — full filtered set if filter active, mixed-sort sample otherwise
-    setProgress(10, '作品リストを取得中...');
-    var candidates = [];
-    var seenIds = {};
-    var hasFilter = !!(CURRENT_GENRE || CURRENT_DECADE);
-    var commonParams = {
-      api_key: API_KEY, language: 'ja-JP',
-      with_watch_providers: PROVIDER_ID, watch_region: 'JP',
-      'vote_count.gte': CURRENT_TAB === 'movie' ? 50 : 20
-    };
-    if (CURRENT_GENRE) commonParams.with_genres = CURRENT_GENRE;
-    if (CURRENT_DECADE) {
-      var dk = CURRENT_TAB === 'movie' ? 'primary_release_date' : 'first_air_date';
-      var dn = parseInt(CURRENT_DECADE);
-      commonParams[dk + '.gte'] = CURRENT_DECADE + '-01-01';
-      commonParams[dk + '.lte'] = CURRENT_DECADE === '1980' ? '1989-12-31' : (dn + 9) + '-12-31';
+    // ── Step 1: Claudeの知識から8作品を推薦 ──
+    setProgress(10, 'Claudeが選んでいます...');
+    var tabHint = CURRENT_TAB === 'movie' ? '映画' : 'ドラマ・アニメ';
+    var genreName = GENRES[CURRENT_GENRE] || '';
+    var decadeHint = CURRENT_DECADE ? CURRENT_DECADE + '年代' : '';
+    var ctx = '';
+    if (genreName || decadeHint) {
+      ctx = '（' + [genreName, decadeHint].filter(Boolean).join('、') + 'を考慮すること）';
     }
 
-    if (hasFilter) {
-      // Filter active: fetch up to 20 pages (400 items) sorted by popularity, full pool
-      var fp = Object.assign({}, commonParams, { sort_by: 'popularity.desc' });
-      for (var p = 1; p <= 20; p++) {
-        fp.page = p;
-        var pr = await fetch('https://api.themoviedb.org/3/discover/' + CURRENT_TAB + '?' + new URLSearchParams(fp));
-        var pd = await pr.json();
-        var results = pd.results || [];
-        results.forEach(function(item) {
-          if (!seenIds[item.id]) { seenIds[item.id] = true; candidates.push(item); }
-        });
-        setProgress(10 + p * 2, '作品リストを取得中... (' + candidates.length + '件)');
-        if (p >= (pd.total_pages || 1)) break; // stop if no more pages
-      }
-    } else {
-      // No filter: mix 3 sort strategies for diversity (5+3+2 pages ≈ 150-200 items)
-      var strategies = [
-        { sort: 'popularity.desc', pages: 5 },
-        { sort: 'vote_average.desc', pages: 3 },
-        { sort: (CURRENT_TAB === 'movie' ? 'primary_release_date' : 'first_air_date') + '.desc', pages: 2 }
-      ];
-      var totalSteps = strategies.reduce(function(s,x){ return s+x.pages; }, 0);
-      var fetched = 0;
-      for (var si = 0; si < strategies.length; si++) {
-        var strat = strategies[si];
-        var sp = Object.assign({}, commonParams, { sort_by: strat.sort });
-        for (var p = 1; p <= strat.pages; p++) {
-          sp.page = p;
-          var pr = await fetch('https://api.themoviedb.org/3/discover/' + CURRENT_TAB + '?' + new URLSearchParams(sp));
-          var pd = await pr.json();
-          (pd.results || []).forEach(function(item) {
-            if (!seenIds[item.id]) { seenIds[item.id] = true; candidates.push(item); }
-          });
-          fetched++;
-          setProgress(10 + fetched / totalSteps * 40, '作品リストを取得中... (' + candidates.length + '件)');
-        }
-      }
-    }
+    var sysPrompt = 'あなたはAmazon Prime Videoに精通したフィルムコンシェルジュです。ユーザーの気分・好みに合う' + tabHint + 'を8本推薦してください。\n条件:\n- Amazon Prime Video Japanで視聴可能な実在の作品のみ\n- 以下のJSON配列のみ返す（マークダウン・説明文不要）\n[{"title":"タイトル（英語可）","year":2020,"type":"movie","reason":"推薦理由20字以内"}]';
 
-    // Step 2: build compact list for Claude
-    setProgress(55, 'Claudeが選んでいます...');
-    var lines = candidates.map(function(item, i) {
-      var title = item.title || item.name || '';
-      var year = (item.release_date || item.first_air_date || '').slice(0, 4);
-      var rating = item.vote_average ? item.vote_average.toFixed(1) : '?';
-      var genreNames = (item.genre_ids || []).map(function(id) { return GENRES[id] || ''; }).filter(Boolean).join('/');
-      var ov = (item.overview || '').slice(0, 60).replace(/\n/g, ' ');
-      return (i + 1) + '. [' + item.id + '] ' + title + ' (' + year + ') ★' + rating + ' [' + genreNames + '] ' + ov;
+    var r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': CLAUDE_KEY,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 900,
+        system: sysPrompt,
+        messages: [{ role: 'user', content: '気分・好み: "' + mood + '"' + ctx }]
+      })
     });
+    var d = await r.json();
+    if (d.error) throw new Error(d.error.message);
+    var text = d.content[0].text.trim().replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/, '');
+    var recs = JSON.parse(text);
 
-        var sysPrompt = 'You are a film concierge for Amazon Prime Video Japan. You receive a numbered list of available titles and a mood. Select exactly 8 IDs that best match the mood. CRITICAL RULES: (1) ONLY use IDs that appear in the provided list, never invent or guess IDs. (2) Return ONLY a valid JSON array with no markdown and no text outside the JSON. (3) Output exactly 8 objects.';
-
-    var idToItem = {};
-    candidates.forEach(function(c) { idToItem[c.id] = c; });
-
-    async function callClaude(lineSubset, count) {
-      var uPrompt = 'Mood: "' + mood + '"\n\nAvailable titles (ONLY use IDs from this list):\n' + lineSubset.join('\n') + '\n\nReturn JSON array of exactly ' + count + ' picks: [{"id": <number>, "reason": "<日本語で20字以内の一言>"}]';
-      var r = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': CLAUDE_KEY,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true'
-        },
-        body: JSON.stringify({
-          model: 'claude-haiku-4-5-20251001',
-          max_tokens: 1000,
-          system: sysPrompt,
-          messages: [{ role: 'user', content: uPrompt }]
-        })
-      });
-      var d = await r.json();
-      if (d.error) throw new Error(d.error.message);
-      var text = d.content[0].text.trim().replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/, '');
-      return JSON.parse(text);
-    }
-
-    setProgress(55, 'Claudeが選んでいます...');
-    var picks = await callClaude(lines, 8);
-    var validPicks = picks.filter(function(pick) { return !!idToItem[pick.id]; });
-
-    // If some picks had invalid IDs, retry with remaining candidates to fill the gap
-    if (validPicks.length < 8) {
-      setProgress(75, '追加候補を選んでいます...');
-      var usedIds = {};
-      validPicks.forEach(function(p) { usedIds[p.id] = true; });
-      var remainingLines = lines.filter(function(l) {
-        var m = l.match(/^\d+\. \[(\d+)\]/);
-        return m && !usedIds[parseInt(m[1])];
-      });
-      var needed = 8 - validPicks.length;
-      try {
-        var morePicks = await callClaude(remainingLines, needed);
-        var moreValid = morePicks.filter(function(pick) { return !!idToItem[pick.id]; });
-        validPicks = validPicks.concat(moreValid).slice(0, 8);
-      } catch(e2) { /* retry failed, use what we have */ }
-    }
-
+    // ── Step 2: TMDBで各作品の情報を検索（CORSネイティブ・プロキシ不要） ──
     AI_PICKS = {};
-    validPicks.forEach(function(pick) { AI_PICKS[pick.id] = pick.reason; });
+    var enriched = [];
+    for (var i = 0; i < recs.length; i++) {
+      var rec = recs[i];
+      setProgress(30 + Math.round(i / recs.length * 60), 'TMDB検索中... ' + (i + 1) + '/' + recs.length);
+      try {
+        var mediaType = (rec.type === 'tv') ? 'tv' : 'movie';
+        var searchParams = new URLSearchParams({
+          api_key: API_KEY,
+          language: 'ja-JP',
+          query: rec.title,
+        });
+        if (rec.year) {
+          searchParams.set(
+            mediaType === 'movie' ? 'primary_release_year' : 'first_air_date_year',
+            String(rec.year)
+          );
+        }
+        var res = await fetch('https://api.themoviedb.org/3/search/' + mediaType + '?' + searchParams);
+        var data = await res.json();
+        var tmdbItem = (data.results || [])[0] || null;
+        if (tmdbItem) AI_PICKS[tmdbItem.id] = rec.reason;
+        enriched.push({ rec: rec, tmdbData: tmdbItem, mediaType: mediaType });
+        console.log('[AI TMDB] "' + rec.title + '" → ' + (tmdbItem ? (tmdbItem.title || tmdbItem.name) : 'not found'));
+      } catch(e2) {
+        enriched.push({ rec: rec, tmdbData: null, mediaType: 'movie' });
+      }
+      if (i < recs.length - 1) await new Promise(function(resolve) { setTimeout(resolve, 150); });
+    }
 
-    setProgress(90, '結果を表示中...');
-    // Render AI picks section
-    renderAiPicks(validPicks, idToItem, mood);
+    setProgress(95, '表示中...');
+    renderAiPicks(enriched, mood);
     setProgress(100, '完了');
-    setTimeout(hideProgress, 600);
+    setTimeout(hideProgress, 500);
 
   } catch(e) {
     hideProgress();
@@ -450,22 +391,33 @@ async function runAiSuggest() {
   btn.textContent = '✨ 探す';
 }
 
-function renderAiPicks(picks, idToItem, mood) {
+function renderAiPicks(enriched, mood) {
   var wrap = document.getElementById('ai-picks-wrap');
-  var html = '<div class="ai-picks-section">' +
-    '<div class="ai-picks-header">' +
-      '<span class="ai-picks-title">✨ AIセレクション</span>' +
-      '<span class="ai-picks-mood">&ldquo;' + escHtml(mood) + '&rdquo;</span>' +
-      '<button class="ai-clear-btn" onclick="clearAiPicks()">&#x2715; クリア</button>' +
-    '</div>' +
-    '<div class="ai-card-grid" id="ai-card-grid"></div>' +
-  '</div>';
-  wrap.innerHTML = html;
+  wrap.innerHTML =
+    '<div class="ai-picks-section">' +
+      '<div class="ai-picks-header">' +
+        '<span class="ai-picks-title">✨ AIセレクション</span>' +
+        '<span class="ai-picks-mood">&ldquo;' + escHtml(mood) + '&rdquo;</span>' +
+        '<button class="ai-clear-btn" onclick="clearAiPicks()">&#x2715; クリア</button>' +
+      '</div>' +
+      '<div class="ai-card-grid" id="ai-card-grid"></div>' +
+    '</div>';
   var grid = document.getElementById('ai-card-grid');
-  picks.forEach(function(pick, idx) {
-    var item = idToItem[pick.id];
-    if (!item) return;
-    grid.appendChild(buildAiCard(item, pick.reason, idx + 1));
+  enriched.forEach(function(e, idx) {
+    var item = e.tmdbData;
+    // TMDBで見つからなかった場合はClaudeのデータでプレースホルダー
+    if (!item) {
+      item = {
+        title: e.rec.title,
+        name: e.rec.title,
+        release_date: String(e.rec.year || ''),
+        first_air_date: String(e.rec.year || ''),
+        vote_average: null,
+        poster_path: null,
+        id: null,
+      };
+    }
+    grid.appendChild(buildAiCard(item, e.rec.reason, idx + 1));
   });
   wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -482,7 +434,7 @@ function buildAiCard(item, reason, rank) {
   var poster = item.poster_path ? IMG_BASE + 'w300' + item.poster_path : null;
   var div = document.createElement('div');
   div.className = 'ai-movie-card';
-  div.onclick = function() { openDetail(item); };
+  if (item.id) div.onclick = function() { openDetail(item); };
   var posterHtml = poster
     ? '<img class="card-poster" src="' + poster + '" loading="lazy" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">' +
       '<div class="card-poster-ph" style="display:none">🎬</div>'
