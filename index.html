@@ -197,7 +197,7 @@
     <div class="prime-badge">prime</div>
     <div class="header-title">
       <h1>Prime Video ランキング</h1>
-      <p>TMDB × 評価順 / 人気順 / 新着順 ｜ 2026/06/18 15:15 JST</p>
+      <p>TMDB × 評価順 / 人気順 / 新着順 ｜ 2026/06/18 23:36 JST</p>
     </div>
   </div>
   <div class="header-right">
@@ -286,6 +286,9 @@
 </div>
 
 <script>
+// ── PRESET KEYS（ここに直接入力してデプロイすると入力不要になります） ──
+var TMDB_KEY_PRESET = '45e108be63aa51abb90a59f67c01fb7a'; // 例: 'abcdef1234567890'
+
 var API_KEY = '';
 var CLAUDE_KEY = '';
 var CURRENT_TAB = 'movie';
@@ -831,6 +834,9 @@ function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'
 
 // ── Init ──
 (function() {
+  // プリセットが設定されていればlocalStorageに上書き保存
+  if (TMDB_KEY_PRESET) localStorage.setItem('tmdb_key', TMDB_KEY_PRESET);
+
   var tmdb = localStorage.getItem('tmdb_key');
   var claude = localStorage.getItem('claude_key');
   if (tmdb) {
