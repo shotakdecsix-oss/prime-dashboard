@@ -77,6 +77,8 @@
     .ai-movie-card:hover{transform:translateY(-3px);border-color:var(--prime);}
     .ai-rank{position:absolute;top:7px;left:7px;background:rgba(0,168,225,.9);color:#fff;font-size:.62rem;font-weight:900;border-radius:4px;padding:1px 6px;z-index:2;}
     .ai-reason-overlay{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(10,18,40,.97) 0%,rgba(10,18,40,.8) 70%,transparent 100%);padding:28px 8px 8px;font-size:.64rem;color:#a8d8ea;line-height:1.45;z-index:2;}
+    .ai-prime-ok{position:absolute;top:7px;right:7px;background:rgba(0,168,225,.9);color:#fff;font-size:.58rem;font-weight:900;border-radius:4px;padding:2px 6px;z-index:3;letter-spacing:.3px;}
+    .ai-prime-ng{position:absolute;top:7px;right:7px;background:rgba(80,80,100,.75);color:#aaa;font-size:.58rem;font-weight:700;border-radius:4px;padding:2px 6px;z-index:3;letter-spacing:.3px;}
 
     /* Filter bar */
     .filter-bar{background:var(--bg2);padding:10px 20px;display:flex;flex-direction:column;gap:7px;border-bottom:1px solid var(--border);}
@@ -179,7 +181,7 @@
     <div class="prime-badge">prime</div>
     <div class="header-title">
       <h1>Prime Video ランキング</h1>
-      <p>TMDB × 評価順 / 人気順 / 新着順 ｜ 2026/06/18 14:01 JST</p>
+      <p>TMDB × 評価順 / 人気順 / 新着順 ｜ 2026/06/18 14:07 JST</p>
     </div>
   </div>
   <div class="header-right">
@@ -370,8 +372,20 @@ async function runAiSuggest() {
         var data = await res.json();
         var tmdbItem = (data.results || [])[0] || null;
         if (tmdbItem) AI_PICKS[tmdbItem.id] = rec.reason;
-        enriched.push({ rec: rec, tmdbData: tmdbItem, mediaType: mediaType });
-        console.log('[AI TMDB] "' + rec.title + '" → ' + (tmdbItem ? (tmdbItem.title || tmdbItem.name) : 'not found'));
+
+        // Watch Providers チェック（JP flatrate に provider_id=9 があれば Prime 対象）
+        var isPrime = false;
+        if (tmdbItem) {
+          try {
+            var wpRes = await fetch('https://api.themoviedb.org/3/' + mediaType + '/' + tmdbItem.id + '/watch/providers?api_key=' + API_KEY);
+            var wpData = await wpRes.json();
+            var jpData = (wpData.results || {}).JP || {};
+            isPrime = (jpData.flatrate || []).some(function(p) { return p.provider_id === 9; });
+          } catch(e3) { /* 取得失敗は無視 */ }
+        }
+
+        enriched.push({ rec: rec, tmdbData: tmdbItem, mediaType: mediaType, isPrime: isPrime });
+        console.log('[AI TMDB] "' + rec.title + '" → ' + (tmdbItem ? (tmdbItem.title || tmdbItem.name) : 'not found') + (isPrime ? ' ✓Prime' : ' ×Prime外'));
       } catch(e2) {
         enriched.push({ rec: rec, tmdbData: null, mediaType: 'movie' });
       }
@@ -417,7 +431,7 @@ function renderAiPicks(enriched, mood) {
         id: null,
       };
     }
-    grid.appendChild(buildAiCard(item, e.rec.reason, idx + 1));
+    grid.appendChild(buildAiCard(item, e.rec.reason, idx + 1, e.isPrime));
   });
   wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -427,7 +441,7 @@ function clearAiPicks() {
   document.getElementById('ai-picks-wrap').innerHTML = '';
 }
 
-function buildAiCard(item, reason, rank) {
+function buildAiCard(item, reason, rank, isPrime) {
   var title = item.title || item.name || '不明';
   var year = (item.release_date || item.first_air_date || '').slice(0, 4);
   var rating = item.vote_average ? item.vote_average.toFixed(1) : '—';
@@ -439,8 +453,14 @@ function buildAiCard(item, reason, rank) {
     ? '<img class="card-poster" src="' + poster + '" loading="lazy" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">' +
       '<div class="card-poster-ph" style="display:none">🎬</div>'
     : '<div class="card-poster-ph">🎬</div>';
+  var primeBadge = item.id !== null
+    ? (isPrime
+        ? '<div class="ai-prime-ok">✓ Prime</div>'
+        : '<div class="ai-prime-ng">Prime外</div>')
+    : '';
   div.innerHTML =
     '<div class="ai-rank">' + rank + '</div>' +
+    primeBadge +
     posterHtml +
     '<div class="ai-reason-overlay">' + escHtml(reason) + '</div>' +
     '<div class="card-body">' +
