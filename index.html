@@ -189,7 +189,7 @@
     <div class="prime-badge">prime</div>
     <div class="header-title">
       <h1>Prime Video ランキング</h1>
-      <p>TMDB × 評価順 / 人気順 / 新着順 ｜ 2026/06/18 14:20 JST</p>
+      <p>TMDB × 評価順 / 人気順 / 新着順 ｜ 2026/06/18 15:02 JST</p>
     </div>
   </div>
   <div class="header-right">
@@ -333,11 +333,6 @@ async function runAiSuggest() {
 
   try {
     var primeOnly = document.getElementById('prime-only-toggle').checked;
-    // Prime-onlyモードは多めに取得してフィルタするため12本、通常は8本
-    var requestCount = primeOnly ? 16 : 8;
-
-    // ── Step 1: Claudeの知識から推薦 ──
-    setProgress(10, 'Claudeが選んでいます...');
     var tabHint = CURRENT_TAB === 'movie' ? '映画' : 'ドラマ・アニメ';
     var genreName = GENRES[CURRENT_GENRE] || '';
     var decadeHint = CURRENT_DECADE ? CURRENT_DECADE + '年代' : '';
@@ -346,75 +341,103 @@ async function runAiSuggest() {
       ctx = '（' + [genreName, decadeHint].filter(Boolean).join('、') + 'を考慮すること）';
     }
 
-    var sysPrompt = 'あなたはAmazon Prime Videoに精通したフィルムコンシェルジュです。ユーザーの気分・好みに合う' + tabHint + 'を' + requestCount + '本推薦してください。\n条件:\n- Amazon Prime Video Japanで視聴可能な実在の作品のみ\n- 以下のJSON配列のみ返す（マークダウン・説明文不要）\n[{"title":"タイトル（英語可）","year":2020,"type":"movie","reason":"推薦理由20字以内"}]';
+    var MIN_PRIME = 4;
+    var MAX_RETRIES = 3;  // Claudeへの問い合わせ上限
+    var allEnriched = [];
+    var triedTitles = [];
 
-    var r = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': CLAUDE_KEY,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: primeOnly ? 1700 : 900,
-        system: sysPrompt,
-        messages: [{ role: 'user', content: '気分・好み: "' + mood + '"' + ctx }]
-      })
-    });
-    var d = await r.json();
-    if (d.error) throw new Error(d.error.message);
-    var text = d.content[0].text.trim().replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/, '');
-    var recs = JSON.parse(text);
-
-    // ── Step 2: TMDBで各作品を検索 + Watch Providers チェック ──
-    AI_PICKS = {};
-    var enriched = [];
-    for (var i = 0; i < recs.length; i++) {
-      var rec = recs[i];
-      setProgress(30 + Math.round(i / recs.length * 60), 'TMDB検索中... ' + (i + 1) + '/' + recs.length);
-      try {
-        var mediaType = (rec.type === 'tv') ? 'tv' : 'movie';
-        var searchParams = new URLSearchParams({
-          api_key: API_KEY,
-          language: 'ja-JP',
-          query: rec.title,
-        });
-        if (rec.year) {
-          searchParams.set(
-            mediaType === 'movie' ? 'primary_release_year' : 'first_air_date_year',
-            String(rec.year)
-          );
-        }
-        var res = await fetch('https://api.themoviedb.org/3/search/' + mediaType + '?' + searchParams);
-        var data = await res.json();
-        var tmdbItem = (data.results || [])[0] || null;
-        if (tmdbItem) AI_PICKS[tmdbItem.id] = rec.reason;
-
-        // Watch Providers チェック（JP flatrate に provider_id=9 があれば Prime 対象）
-        var isPrime = false;
-        if (tmdbItem) {
-          try {
-            var wpRes = await fetch('https://api.themoviedb.org/3/' + mediaType + '/' + tmdbItem.id + '/watch/providers?api_key=' + API_KEY);
-            var wpData = await wpRes.json();
-            var jpData = (wpData.results || {}).JP || {};
-            isPrime = (jpData.flatrate || []).some(function(p) { return p.provider_id === 9; });
-          } catch(e3) { /* 取得失敗は無視 */ }
-        }
-
-        enriched.push({ rec: rec, tmdbData: tmdbItem, mediaType: mediaType, isPrime: isPrime });
-        console.log('[AI TMDB] "' + rec.title + '" → ' + (tmdbItem ? (tmdbItem.title || tmdbItem.name) : 'not found') + (isPrime ? ' ✓Prime' : ' ×Prime外'));
-      } catch(e2) {
-        enriched.push({ rec: rec, tmdbData: null, mediaType: 'movie', isPrime: false });
-      }
-      if (i < recs.length - 1) await new Promise(function(resolve) { setTimeout(resolve, 150); });
+    // ── Claude呼び出しヘルパー ──
+    async function askClaude(count, excludeTitles) {
+      var excl = excludeTitles.length > 0
+        ? '\n- 除外（すでに確認済み）: ' + excludeTitles.slice(-20).join('、')
+        : '';
+      var sysPrompt = 'あなたはAmazon Prime Videoに精通したフィルムコンシェルジュです。ユーザーの気分・好みに合う' + tabHint + 'を' + count + '本推薦してください。\n条件:\n- Amazon Prime Video Japanで視聴可能な実在の作品のみ' + excl + '\n- 以下のJSON配列のみ返す（マークダウン・説明文不要）\n[{"title":"タイトル（英語可）","year":2020,"type":"movie","reason":"推薦理由20字以内"}]';
+      var r = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': CLAUDE_KEY,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: Math.max(900, count * 110),
+          system: sysPrompt,
+          messages: [{ role: 'user', content: '気分・好み: "' + mood + '"' + ctx }]
+        })
+      });
+      var d = await r.json();
+      if (d.error) throw new Error(d.error.message);
+      var text = d.content[0].text.trim().replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/, '');
+      return JSON.parse(text);
     }
 
-    // Prime-onlyモードならフィルタして最大8件
+    // ── TMDB検索 + Watch Providers チェック ──
+    async function enrichRecs(recs, progressBase, progressRange) {
+      var result = [];
+      for (var i = 0; i < recs.length; i++) {
+        var rec = recs[i];
+        setProgress(progressBase + Math.round(i / recs.length * progressRange),
+          'TMDB検索中... ' + (i + 1) + '/' + recs.length);
+        try {
+          var mediaType = (rec.type === 'tv') ? 'tv' : 'movie';
+          var searchParams = new URLSearchParams({ api_key: API_KEY, language: 'ja-JP', query: rec.title });
+          if (rec.year) searchParams.set(mediaType === 'movie' ? 'primary_release_year' : 'first_air_date_year', String(rec.year));
+          var res = await fetch('https://api.themoviedb.org/3/search/' + mediaType + '?' + searchParams);
+          var data = await res.json();
+          var tmdbItem = (data.results || [])[0] || null;
+          if (tmdbItem) AI_PICKS[tmdbItem.id] = rec.reason;
+          var isPrime = false;
+          if (tmdbItem) {
+            try {
+              var wpRes = await fetch('https://api.themoviedb.org/3/' + mediaType + '/' + tmdbItem.id + '/watch/providers?api_key=' + API_KEY);
+              var wpData = await wpRes.json();
+              var jpData = (wpData.results || {}).JP || {};
+              isPrime = (jpData.flatrate || []).some(function(p) { return p.provider_id === 9; });
+            } catch(e3) {}
+          }
+          result.push({ rec: rec, tmdbData: tmdbItem, mediaType: mediaType, isPrime: isPrime });
+          console.log('[AI TMDB] "' + rec.title + '" → ' + (tmdbItem ? (tmdbItem.title || tmdbItem.name) : 'not found') + (isPrime ? ' ✓Prime' : ' ×Prime外'));
+        } catch(e2) {
+          result.push({ rec: rec, tmdbData: null, mediaType: 'movie', isPrime: false });
+        }
+        if (i < recs.length - 1) await new Promise(function(resolve) { setTimeout(resolve, 150); });
+      }
+      return result;
+    }
+
+    AI_PICKS = {};
+
+    if (!primeOnly) {
+      // 通常モード：1回だけ
+      setProgress(10, 'Claudeが選んでいます...');
+      var recs = await askClaude(8, []);
+      allEnriched = await enrichRecs(recs, 30, 60);
+    } else {
+      // Prime-onlyモード：最低MIN_PRIME件になるまでリトライ（最大MAX_RETRIES回）
+      for (var attempt = 0; attempt < MAX_RETRIES; attempt++) {
+        var primeCount = allEnriched.filter(function(e) { return e.isPrime; }).length;
+        if (primeCount >= 8) break;
+
+        var label = attempt === 0 ? 'Claudeが選んでいます...' : '追加取得中 (' + (attempt + 1) + '/' + MAX_RETRIES + ')...';
+        setProgress(5 + attempt * 3, label);
+        var needed = Math.max(12, (8 - primeCount) * 3);
+        var recs = await askClaude(needed, triedTitles);
+        triedTitles = triedTitles.concat(recs.map(function(r) { return r.title; }));
+
+        var pBase = 15 + attempt * 25;
+        var newBatch = await enrichRecs(recs, pBase, 22);
+        allEnriched = allEnriched.concat(newBatch);
+
+        var newPrimeCount = allEnriched.filter(function(e) { return e.isPrime; }).length;
+        if (newPrimeCount >= MIN_PRIME) break;
+      }
+    }
+
     var displayList = primeOnly
-      ? enriched.filter(function(e) { return e.isPrime; }).slice(0, 8)
-      : enriched.slice(0, 8);
+      ? allEnriched.filter(function(e) { return e.isPrime; }).slice(0, 8)
+      : allEnriched.slice(0, 8);
 
     setProgress(95, '表示中...');
     renderAiPicks(displayList, mood, primeOnly);
